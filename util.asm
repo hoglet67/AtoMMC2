@@ -17,8 +17,36 @@ interwritedelay:
    bne  @loop
    rts
 
+; subroutines for macros in macro.inc
 
+SLOWCMD_DELAY:
+	lda #0
+	sec 
+SLOWCMD_DELAY_LOOP:
+	sbc #1
+	bne SLOWCMD_DELAY_LOOP
+	rts
 
+PREPGETFRB406_SUB:
+   lda #CMD_INIT_READ
+   writeportFAST ACMD_REG				
+   jmp interwritedelay
+
+PREPPUTTOB407_SUB: 
+   lda #CMD_INIT_WRITE
+   writeportFAST ACMD_REG 			
+   jmp interwritedelay
+  
+OPEN_READ_SUB:
+   lda #CMD_FILE_OPEN_READ
+   jsr open_file
+   jmp expect64orless
+	
+
+DELETE_FILE_SUB:
+   lda   #CMD_FILE_DELETE
+   SLOWCMD ACMD_REG			
+   jmp   expect64orless
 
 
 
@@ -35,7 +63,7 @@ getasciizstringto140:
 
 @loop:
    iny
-   lda  $b406
+   lda  AREAD_DATA_REG	; $b406
    sta  NAME,y
    bne  @loop
 
@@ -60,7 +88,7 @@ read_data_buffer:
    ldy  #0
 
 @loop:
-   lda  $b406
+   lda  AREAD_DATA_REG	; $b406
    sta  (RWPTR),y
    iny
    dex
@@ -79,7 +107,7 @@ read_data_buffer:
 ; Perform slow command initialisation and expect a return code <= 64
 ;
 expect64orless:
-   cmp  #65
+   cmp  #STATUS_COMPLETE+1
    bcs  reportDiskFailure
    rts
 
@@ -107,19 +135,19 @@ ifen:
 
 
 getcb:
-   lda   #$f0              ; retreive config byte
-   sta   $b40f
-   jsr   interwritedelay
-   lda   $b40f
+   lda   			#CMD_GET_CFG_BYTE      ; retreive config byte
+   writeportFAST   	ACMD_REG	
+   jsr   			interwritedelay
+   lda   			ACMD_REG	
    rts
 
    
 putcb:
-   sta   $b40e             ; latch the value
-   jsr   interwritedelay
+   writeportFAST	ALATCH_REG		; $b40e  ; latch the value
+   jsr   			interwritedelay
 
-   lda   #$f1              ; write latched val as config byte. irqs are now off
-   sta   $b40f
+   lda   			#CMD_SET_CFG_BYTE      ; write latched val as config byte. irqs are now off
+   writeportFAST	ACMD_REG	
    rts
 
 
@@ -130,7 +158,7 @@ putcb:
 ; report a file system error
 ;
 reportDiskFailure:
-   and   #$3f
+   and   #ERROR_MASK
    tax                     ; error code into x
    ldy   #$ff                ; string indexer
 
@@ -277,7 +305,7 @@ read_filename:
    cpx   #0
    beq   @filename6
 
-   jmp   $f844		; set the pointer at $c9, set x=$c9
+   rts
 
 @filename5:
    iny

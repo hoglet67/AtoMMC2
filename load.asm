@@ -7,6 +7,7 @@
 ;
 STARLOAD:
     jsr  read_filename       ; copy filename into $140
+    jsr  $f844               ; set $c9\a = $140, set x = $c9
     jmp  $f95b               ; *LOAD+3
 
 
@@ -51,6 +52,7 @@ osloadcode:
 ;
 STARRLOAD:
    jsr   read_filename        ; copy filename into $140
+   jsr   $f844                ; set $c9\a = $140, set x = $c9
 
    ldx   #$cb                 ; Point to the vector at #CB, #CC
    jsr   RDOPTAD              ; ..and interpret the load address to store it here
@@ -64,8 +66,8 @@ STARRLOAD:
 
    SETRWPTR NAME              ; get the FAT file size - ignore any ATM headers
 
-   lda   #128
-   SLOWCMD $b403
+   lda   #CMD_FILE_GETINFO
+   SLOWCMD ACMD_REG		; $b403
 
    ldx   #13
    jsr   read_data_buffer 
@@ -119,6 +121,7 @@ STARROMLOAD:
    bne   nomemerr
 
    jsr   read_filename        ; copy filename into $140
+   jsr   $f844                ; set $c9\a = $140, set x = $c9
 
    jsr   CHKNAME
    OPEN_READ

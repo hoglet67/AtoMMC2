@@ -12,8 +12,8 @@ STARFATINFO:
 
     SETRWPTR NAME          ; get the FAT file size - text files won't have ATM headers
 
-    lda  #128
-    SLOWCMD $b403
+    lda  #CMD_FILE_GETINFO
+    SLOWCMD ACMD_REG	; $b403
 
     ldx  #13
     jsr  read_data_buffer 

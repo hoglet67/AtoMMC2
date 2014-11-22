@@ -1,8 +1,9 @@
+
 ;
 ; todo - 
 ;
 
-
+.include "atmmc2def.asm"
 
 ; OS overrides
 ;
@@ -52,6 +53,16 @@ RWLEN      =$3cb         ; W - count of bytes to write
 FILTER     =$3cd         ; B - dir walk filter 
 
 
+; I/O register base
+;
+
+AREG_BASE			= $b400	
+ACMD_REG			= AREG_BASE+CMD_REG
+ALATCH_REG          = AREG_BASE+LATCH_REG             
+AREAD_DATA_REG      = AREG_BASE+READ_DATA_REG             
+AWRITE_DATA_REG     = AREG_BASE+WRITE_DATA_REG             
+	
+
 ; FN       ADDR
 ;
 OSWRCH     =$fff4
@@ -71,76 +82,7 @@ HEXOUTS    =$f7fa
 STROUT     =$f7d1
 
 
-.macro FNADDR addr
-   .byte >addr, <addr
-.endmacro
-
-.macro REPERROR addr
-   lda #<addr
-   sta $d5
-   lda #>addr
-   sta $d6
-   jmp reportFailure
-.endmacro
-
-.macro SLOWCMD port
-   sta port
-   lda #0
-   sec 
-   sbc #1
-   bne *-2
-   lda port
-   bmi *-10
-.endmacro
-
-.macro PREPPUTTOB407
-   lda #$ff
-   sta $b403
-   jsr interwritedelay
-.endmacro
-
-.macro SENDBYTE val
-   lda #val
-   sta $b407
-   jsr interwritedelay
-.endmacro
-
-.macro PREPGETFRB406
-   lda #$3f
-   sta $b406
-   jsr interwritedelay
-.endmacro
-
-.macro SETRWPTR addr
-   lda #<addr
-   sta RWPTR
-   lda #>addr
-   sta RWPTR+1
-.endmacro
-
-.macro OPEN_READ
-   lda #$01
-   jsr open_file
-   jsr expect64orless
-.endmacro
-
-.macro OPEN_WRITE
-   lda #$11
-   jsr open_file
-.endmacro
-
-.macro CLOSE_FILE
-   lda #0
-   SLOWCMD $b403
-   jsr   expect64orless
-.endmacro
-
-.macro DELETE_FILE
-   lda   #$40
-   SLOWCMD $b403
-   jsr   expect64orless
-.endmacro
-
+.include "macros.inc"
 
 .SEGMENT "CODE"
 
@@ -155,8 +97,8 @@ AtoMMC2:
 .IFNDEF EOOO
    ; - however we got an interrupt so we need to clear it
    ;
-   lda   #30               ; as we've had an interrupt we want to wait longer
-   sta   CRC               ; for the interface to respond
+  ; lda   #30               ; as we've had an interrupt we want to wait longer
+  ; sta   CRC               ; for the interface to respond
    jsr   irqgetcardtype
    pla
    rti
@@ -175,11 +117,11 @@ AtoMMC2:
 
    ; read card type
    ;
-   lda   #4                   ; timeout value, ret when crc == -1
-   sta   CRC
+  ; lda   #7                   ; timeout value, ret when crc == -1
+  ; sta   CRC
    jsr   irqgetcardtype
-   bit   CRC
-   bmi   @unpatched
+  ; bit   CRC
+  ; bmi   @unpatched
 
    tay
 
@@ -232,8 +174,8 @@ AtoMMC2:
 @quiet:
    jsr   installhooks
 
-   lda   #$f0             ; get config byte
-   sta   $b40f
+   lda   #CMD_GET_CFG_BYTE             ; get config byte
+   sta   ACMD_REG			
    jsr   interwritedelay
 
 ;    $b40f    $b001
@@ -242,7 +184,7 @@ AtoMMC2:
 ;      1        0    [norm sh, sh pressed]     1
 ;      1        1    [norm sh, sh not pressed] 0
 
-   lda   $b40f          ; 'normal shift' bit is 6
+   lda   ACMD_REG				; 'normal shift' bit is 6
    asl   a              ;
    eor   $b001          ;
    bpl   @unpatched     ;
@@ -327,42 +269,40 @@ installhooks:
 
 
 
-igct_delay:
-   ldx   0
-   ldy   0
-igct_inner:
-   dey
-   bne   igct_inner
-   dex
-   bne   igct_inner
-
-   dec   CRC
-   bmi   igct_quit
+;igct_delay:
+;   ldx   0
+;   ldy   0
+;igct_inner:
+;   dey
+;   bne   igct_inner
+;   dex
+;   bne   igct_inner
+;
+;   dec   CRC
+;   bmi   igct_quit
 
 irqgetcardtype:
    ; await the 0xaa,0x55,0xaa... sequence which shows that the interface
    ; is initialised and responding
    ;
-   lda   #$fe
-   sta   $b40f
+   lda   #CMD_GET_HEARTBEAT
+   sta   ACMD_REG			
    jsr   interwritedelay
-   lda   $b40f
+   lda   ACMD_REG			
    cmp   #$aa
-;   bne   irqgetcardtype
-   bne   igct_delay
-   
-   lda   #$fe
-   sta   $b40f
+   bne   irqgetcardtype
+
+   lda   #CMD_GET_HEARTBEAT
+   sta   ACMD_REG			
    jsr   interwritedelay
-   lda   $b40f
+   lda   ACMD_REG			
    cmp   #$55
-;   bne   irqgetcardtype
-   bne   igct_delay
+   bne   irqgetcardtype
 
    ; send read card type command - this also de-asserts the interrupt
 
-   lda   #$80
-   SLOWCMD $b40f
+   lda   #CMD_GET_CARD_TYPE
+   SLOWCMD ACMD_REG		
 
 igct_quit:
    rts
@@ -634,6 +574,10 @@ errorhandler:
    .byte $0d
 
 
+.IFDEF EOOO
+.include "BRAN.asm"
+.ENDIF
+
 .SEGMENT "WRMSTRT"
 
 warmstart:
@@ -643,7 +587,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.7 "
+   .byte "ATOMMC2 V2.9 "
 .IFNDEF EOOO
    .byte "A"
 .ELSE

@@ -1,0 +1,21 @@
+For V 2.x AtoMMC2-2.x-E000
+
+Offset in kernel.rom  Original value  New value
+
+08ea                  0d              cc
+08eb                  e0              ef
+
+Changes execution address of DOS command from $E00D to $EFCC
+
+Offset in kernel.rom  Original value  New value
+
+0f95                  b2              00
+0f96                  c2              e0
+
+Changes JMP at FF94 from 
+
+	JMP	$C282
+
+To become
+	
+	JMP	$e000

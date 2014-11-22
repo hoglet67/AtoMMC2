@@ -1,6 +1,10 @@
 @echo off
 del /Q *.rom
 
+set ROMBOX=z:\retro\acorn\atom\roms\phsmmc
+set CLONE=z:\retro\acorn\atom\roms\AtomClone
+set MESS=g:\emulate\software\atom\roms
+
 echo Converting constants
 bin\htoasm ..\PICFirmware\atmmc2def.h atmmc2def.asm
 
@@ -18,21 +22,22 @@ if not "%errorlevel%" == "0" goto failed
 
 echo Copying
 rem you might not want this section...
-copy atommc2-2.2-a000.rom "%mess%\roms\atom-a000\mmc.rom" /Y
-copy atommc2-2.2-e000.rom "%mess%\roms\atom-e000\dosrom.u15" /Y
-copy atommc2-2.2-a000.rom ..\..\..\ramoth\ /y
+copy atommc2-2.9-a000.rom "%mess%" /Y
+copy atommc2-2.9-e000.rom "%mess%" /Y
 
-copy atommc2-2.2-e000.rom ..\..\..\ramoth\ /y
+copy atommc2-2.9-a000.rom "%ROMBOX%\atommc2-2.9-a000.rom" /Y
+copy atommc2-2.9-e000.rom "%ROMBOX%\atommc2-2.9-e000.rom" /Y
+copy atommc2-2.9-e000.rom "%CLONE%\atommc2-2.9-e000.rom" /Y
 
 echo Cleaning
 del /Q *.o
 
 :done
 echo OK
-pause
+REM pause
 exit /B
 
 :failed
 @echo Failed to assemble (%ErrorLevel%)
-pause
+REM pause
 exit /B

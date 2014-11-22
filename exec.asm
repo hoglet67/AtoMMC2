@@ -12,8 +12,8 @@ STAREXEC:
 
    SETRWPTR NAME     ; get the FAT file size - text files won't have ATM headers
 
-   lda   #128
-   SLOWCMD $b403
+   lda   #CMD_FILE_GETINFO
+   SLOWCMD ACMD_REG		; $b403
 
    ldx   #13
    jsr   read_data_buffer
@@ -69,10 +69,13 @@ execrdch:
    dec   RDCLEN+1
 
 @refillpool:
-   lda   RDCCNT         ; recover count
-   SLOWCMD $b404
-   cmp   #$40
-   beq   @allok
+   lda   			RDCCNT         		; recover count
+   writeportFAST	ALATCH_REG	; set ammount to read
+   jsr				interwritedelay
+   lda				#CMD_READ_BYTES		; set command
+   SLOWCMD 			ACMD_REG
+   cmp   			#STATUS_COMPLETE
+   beq   			@allok
 
    ; error! bail!
 
@@ -96,13 +99,13 @@ execrdch:
    lda   #$fe
    sta   RDCVEC+1
 
-   lda   $b406         ; get char from PIC
+   lda   AREAD_DATA_REG	; $b406         ; get char from PIC
    plp
    rts
 
 
 @finally:
-   lda   $b406         ; get char from PIC
+   lda   AREAD_DATA_REG	; $b406         ; get char from PIC
 
    cmp   #$0a            ; lose LFs - god this is so ghetto i can't believe i've done it
    beq   @sinkchar     ; this will fubar if the last char in a file is A. which is likely. BEWARE!

@@ -43,9 +43,12 @@ STARPBV:
 ;     6 controls the action of the SHIFT key on boot. 1 = SHIFT+BREAK runs menu, 0 = menu runs unless SHIFT-BREAK pressed.
 ;     5 controls whether the interface generates an IRQ on reset. 1 = generate, 0 = don't.
 ;
+;
+; **NOTE** This code relies on CMD_SET_CFG_BYTE being equal to CMD_GET_CFG_BYTE+1
+
 STARCFG:
-   lda   #$f0
-   sta   $ce
+   lda   #CMD_GET_CFG_BYTE
+;   sta   $ce
 
    ; fall into ...
 
@@ -55,17 +58,16 @@ do_cfg_cmd:
    bne   @param1valid
 
    lda   $ce              ; read config register
-   sta   $b40f
+   sta   ACMD_REG	
    jsr   interwritedelay
-   lda   $b40f
+   lda   ACMD_REG	
    jsr   HEXOUT
    jmp   OSCRLF
 
 @param1valid:
-   lda   $cb
-   sta   $b40e            ; latch the value
-   jsr   interwritedelay
-   ldx   $ce              ; jeff the value into the appropriate register
-   inx
-   stx   $b40f
+   lda   			#CMD_SET_CFG_BYTE
+   writeportFAST   	ALATCH_REG		; $b40e ; latch the value
+   jsr   			interwritedelay
+   lda   			#CMD_SET_CFG_BYTE
+   writeportFAST   	ACMD_REG	; $b40f
    rts

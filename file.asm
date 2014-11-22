@@ -11,7 +11,7 @@ open_file:
    jsr   send_name
    
    pla
-   SLOWCMD $b403
+   SLOWCMD ACMD_REG	; $b403
    rts
 
 
@@ -19,29 +19,21 @@ open_file:
 send_name:
    PREPPUTTOB407
 
-   tya
-   pha
-
-   ldy  #0
+   ldx  #0
    beq  @pumpname
 
 @nextchar:
-   sta  $b407
-   iny
+   writeportFAST  AWRITE_DATA_REG	; $b407
+   inx
 
 @pumpname:
-   lda  ($c9),y             ; write filename to filename buffer
+   lda  NAME,x              ; write filename to filename buffer
    cmp  #$0d
    bne  @nextchar
 
    lda  #0                  ; terminate the string
-   sta  $b407
-   pla
-   tay
-   jmp  interwritedelay
-
-
-
+   writeportFAST  	AWRITE_DATA_REG	; $b407
+   jmp  			interwritedelay
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -116,9 +108,10 @@ read_file:
     stx  LLENGTH             ; zero out the length
 
 @alldone:
-   lda   #0                   ; close file
-   SLOWCMD $b403
-    jmp  expect64orless
+	jmp 	closefile
+;   lda   #CMD_FILE_CLOSE       ; close file
+;   SLOWCMD ACMD_REG		; $b403
+;    jmp  expect64orless
 
 
 
@@ -148,7 +141,12 @@ read_file_adapter:
 read_block:
     tax
 
-    SLOWCMD $b404          ; ask PIC for (A) bytes of data (0=256)
+	; ask PIC for (A) bytes of data (0=256)
+	writeportFAST	ALATCH_REG	; set ammount to read
+	jsr				interwritedelay
+	lda				#CMD_READ_BYTES		; set command
+	SLOWCMD 		ACMD_REG
+    
     jsr  expect64orless
 
     PREPGETFRB406           ; tell pic to release the data we just read
@@ -156,7 +154,7 @@ read_block:
     ldy  #0
 
 @loop:
-    lda  $b406               ; then read it
+    lda  AREAD_DATA_REG	; $b406 ; then read it
     sta  (RWPTR),y
     iny
     dex
@@ -202,14 +200,17 @@ write_file:
 
     lda  SEND                ; any stragglers to write?
     cmp  SSTART
-    beq  @closefile
+    beq  closefile
 
     sec                      ; calc remaining bytes
     sbc  SSTART
     jsr  write_file_adapter
 
-@closefile:
-   CLOSE_FILE
+closefile:
+    lda  #CMD_FILE_CLOSE     ; close the file
+; BUG -- should be CMD_REG ??? PHS 2011-05-26
+;    SLOWCMD ADIR_CMD_REG	; $b402 
+	SLOWCMD ACMD_REG
     jmp  expect64orless
 
 
@@ -237,12 +238,15 @@ write_block:
     ldy  #0
 
 @loop:
-    lda  (RWPTR),y           ; upload data
-    sta  $b407
+    lda  			(RWPTR),y           ; upload data
+    writeportFAST	AWRITE_DATA_REG	
     iny
     dex
-    bne @loop
+    bne 			@loop
 
-    pla                     ; write block command
-    SLOWCMD $b405
-    jmp  expect64orless
+    pla                     	; write block command
+	writeportFAST	ALATCH_REG	; ammount to write
+	jsr				interwritedelay
+	lda				#CMD_WRITE_BYTES	; give command to write
+    SLOWCMD 		ACMD_REG	
+    jmp  			expect64orless

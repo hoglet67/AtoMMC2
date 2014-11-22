@@ -5,6 +5,9 @@
 ; Produce a directory listing of the files in the root folder of the card, optionally
 ; displaying only those entries starting with the character specified as the filter.
 ;
+; 2011-05-29, Now uses CMD_REG -- PHS
+; 2012-05-21, converted to use macros for all writes to PIC
+
 STARCAT:
    lda   #0                      ; FILTER = 0 if we want all entries shown
    sta   FILTER
@@ -55,19 +58,18 @@ STARCAT:
 
 
 @continue:
-   jsr   $f844
    jsr   send_name
 
-   lda   #0                      ;  open directory
-   SLOWCMD $b402
+   lda   #CMD_DIR_OPEN              ;  open directory
+   SLOWCMD ACMD_REG			
    jsr   expect64orless
 
 @loop:
-   lda   #1                      ; get directory item
-   SLOWCMD $b402
+   lda   #CMD_DIR_READ              ; get directory item
+   SLOWCMD ACMD_REG		
    jsr   expect64orless
 
-   cmp   #$40                   ; all done
+   cmp   #STATUS_COMPLETE           ; all done
    bne   @printit
 
    rts
@@ -75,7 +77,7 @@ STARCAT:
 @printit:
    jsr   getasciizstringto140    ; a = 0 on exit
 
-   lda   $b406                   ; get attribute byte
+   lda   AREAD_DATA_REG			; $b406 ; get attribute byte
    and   #2                      ; hidden?
    bne   @pause
 

@@ -21,32 +21,32 @@ STARHELP:
    .byte "INTERFACE F/W VERSION "
    nop
 
-   lda   #$e0
-   sta   $b40f
-   jsr   interwritedelay
-   lda   $b40f
-   jsr   ndotn
-   jsr   OSCRLF
+   lda   			#CMD_GET_FW_VER
+   writeportFAST   	ACMD_REG	
+   jsr   			interwritedelay
+   lda   			ACMD_REG	
+   jsr   			ndotn
+   jsr   			OSCRLF
 
 
    jsr   STROUT
    .byte "BOOTLOADER VERSION "
    nop
 
-   lda   #$e1
-   sta   $b40f
-   jsr   interwritedelay
-   lda   $b40f
-   jsr   ndotn
-   jsr   OSCRLF
+   lda   			#CMD_GET_BL_VER
+   writeportFAST   	ACMD_REG	
+   jsr   			interwritedelay
+   lda   			ACMD_REG	
+   jsr   			ndotn
+   jsr   			OSCRLF
 
    ; read and display card type
    ;
    jsr   STROUT
    .byte "CARD TYPE: "
    nop
-   lda   #$80
-   SLOWCMD $b40f
+   lda   #CMD_GET_CARD_TYPE
+   SLOWCMD ACMD_REG	
 
    jsr   bittoindex
    ldy   #4
