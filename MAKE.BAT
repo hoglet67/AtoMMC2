@@ -21,15 +21,15 @@ bin\ld65 e000.o -C atommc2-e000.lkr -o atommc2-2.9-e000.rom
 if not "%errorlevel%" == "0" goto failed
 
 echo Copying
-rem you might not want this section...
-copy atommc2-2.9-a000.rom "%mess%" /Y
-copy atommc2-2.9-e000.rom "%mess%" /Y
+;rem you might not want this section...
+;copy atommc2-2.9-a000.rom "%mess%" /Y
+;copy atommc2-2.9-e000.rom "%mess%" /Y
 
-copy atommc2-2.9-a000.rom "%ROMBOX%\atommc2-2.9-a000.rom" /Y
-copy atommc2-2.9-e000.rom "%ROMBOX%\atommc2-2.9-e000.rom" /Y
-copy atommc2-2.9-e000.rom "%CLONE%\atommc2-2.9-e000.rom" /Y
+;copy atommc2-2.9-a000.rom "%ROMBOX%\atommc2-2.9-a000.rom" /Y
+;copy atommc2-2.9-e000.rom "%ROMBOX%\atommc2-2.9-e000.rom" /Y
+;copy atommc2-2.9-e000.rom "%CLONE%\atommc2-2.9-e000.rom" /Y
 
-echo Cleaning
+;echo Cleaning
 del /Q *.o
 
 :done

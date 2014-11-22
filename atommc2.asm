@@ -455,7 +455,7 @@ comint6:
 .include "save.asm"
 .include "file.asm"
 .include "util.asm"
-
+.include "chain.asm"
 
 
 
@@ -530,6 +530,9 @@ com_tab:
    .byte "CRC"
    FNADDR STARCRC
 
+   .byte "CHAIN"
+   FNADDR STARCHAIN
+
    FNADDR STARARBITRARY
 
 
@@ -587,7 +590,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.9 "
+   .byte "ATOMMC2 V2.91"
 .IFNDEF EOOO
    .byte "A"
 .ELSE
