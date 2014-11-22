@@ -328,6 +328,7 @@ osrdchcode:
 
    ldx   FKIDX
    lda   fakekeys,x
+   cmp #$0d
    beq   @unpatch
 
    inx
@@ -341,17 +342,21 @@ osrdchcode:
 @unpatch:
    ; restore OSRDCH, continue on to read a char
    ;
-   ldx   $e4
-   ldy   $e5
+;   ldx   $e4
+;   ldy   $e5
 
 osrdchcode_unhook:
    lda   #$94
    sta   RDCVEC
    lda   #$fe
    sta   RDCVEC+1
-   
-   plp
-   jmp   (RDCVEC)
+
+;   plp
+   lda #$0d
+   pha
+   jmp $fe5c
+
+;   jmp   (RDCVEC)
 
 
 

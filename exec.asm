@@ -100,6 +100,8 @@ execrdch:
    sta   RDCVEC+1
 
    lda   AREAD_DATA_REG	; $b406         ; get char from PIC
+
+	lda #27
    plp
    rts
 
