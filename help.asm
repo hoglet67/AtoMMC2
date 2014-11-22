@@ -18,25 +18,26 @@ STARHELP:
    jsr   OSCRLF
 
    jsr   STROUT
-   .byte "INTERFACE VERSION "
+   .byte "INTERFACE F/W VERSION "
    nop
 
    lda   #$e0
    sta   $b40f
    jsr   interwritedelay
    lda   $b40f
+   jsr   ndotn
+   jsr   OSCRLF
 
-   pha
-   lsr   a
-   lsr   a
-   lsr   a
-   lsr   a
-   jsr   $f80b             ; print major version
-   lda   #'.'
-   jsr   OSWRCH
-   pla
-   jsr   $f80b             ; print minor version
 
+   jsr   STROUT
+   .byte "BOOTLOADER VERSION "
+   nop
+
+   lda   #$e1
+   sta   $b40f
+   jsr   interwritedelay
+   lda   $b40f
+   jsr   ndotn
    jsr   OSCRLF
 
    ; read and display card type
@@ -60,11 +61,18 @@ STARHELP:
    dey
    bne   @sctloop
 
-   jsr   OSCRLF
+   jmp   OSCRLF
  
-   jsr   STROUT
-   .byte "TYPE *. TO LIST CONTENT OF CARD."
-   .byte $0d, $0a
-   nop
 
-   rts
+
+ndotn:
+   pha
+   lsr   a
+   lsr   a
+   lsr   a
+   lsr   a
+   jsr   $f80b             ; print major version
+   lda   #'.'
+   jsr   OSWRCH
+   pla
+   jmp   $f80b             ; print minor version

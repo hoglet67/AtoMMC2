@@ -618,9 +618,14 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.0 E"
+   .byte "ATOMMC2 V2.1 "
+.IFNDEF EOOO
+   .byte "A"
+.ELSE
+   .byte "E"
+.ENDIF
    .byte $0d,$0a
-   .byte " (C) 2008-2010  "
+   .byte " (C) 2008-2011  "
    .byte "CHARLIE ROBSON. "
 
 
