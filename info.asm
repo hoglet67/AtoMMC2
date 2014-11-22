@@ -10,7 +10,7 @@ STARINFO:
     sta  LEXEC
 
     jsr  read_filename
-    OPEN_READ
+	jsr		open_file_read
     jsr  read_info
     jsr  print_filename
     jsr  print_fileinfo

@@ -27,7 +27,7 @@ osloadcode:
     ;
     jsr  CHKNAME
 
-    OPEN_READ
+	jsr	open_file_read
     jsr  read_info
 
     bit  MONFLAG             ; 0 = mon, ff = nomon
@@ -62,7 +62,7 @@ STARRLOAD:
    ldx   #$c9                 ; File data starts at #C9
 
    jsr   CHKNAME
-   OPEN_READ
+   jsr	open_file_read
 
    SETRWPTR NAME              ; get the FAT file size - ignore any ATM headers
 
@@ -123,7 +123,7 @@ STARROMLOAD:
    jsr   $f844                ; set $c9\a = $140, set x = $c9
 
    jsr   CHKNAME
-   OPEN_READ
+   jsr	open_file_read
 
    lda   #0
    sta   LLOAD

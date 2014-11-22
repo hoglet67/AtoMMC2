@@ -6,7 +6,7 @@
 ;
 STARDELETE:
    jsr  read_filename
-   OPEN_READ
+   jsr	open_file_read
 
    jsr   confirm
 
@@ -19,7 +19,7 @@ STARDELETE:
    rts
 
 @continue:
-   DELETE_FILE
+   jsr	delete_file
    rts
 
 

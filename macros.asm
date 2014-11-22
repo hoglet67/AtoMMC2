@@ -2,6 +2,10 @@
 ; macro definitions for AtoMMC
 ; Collected macros from all files into a single file
 ;=================================================================
+;
+; 2013-10-09 converted some of the macro calls to jsr calls where
+; appropriate. -- PHS
+;
 
 .macro FNADDR addr
    .byte >addr, <addr
@@ -60,13 +64,9 @@
 .endmacro
 
 
-.macro PREPPUTTOB407
-   jsr	PREPPUTTOB407_SUB
-.endmacro
-
-.macro PREPGETFRB406
-   jsr	PREPGETFRB406_SUB
-.endmacro
+;.macro PREPPUTTOB407
+;   jsr	PREPPUTTOB407_SUB
+;.endmacro
 
 .macro SETRWPTR addr
    lda #<addr
@@ -75,18 +75,6 @@
    sta RWPTR+1
 .endmacro
 
-.macro OPEN_READ
-	jsr	OPEN_READ_SUB
-.endmacro
-
-.macro OPEN_WRITE
-   lda #CMD_FILE_OPEN_WRITE
-   jsr open_file
-.endmacro
-
-.macro DELETE_FILE
-   jsr   DELETE_FILE_SUB
-.endmacro
 
 ; Subroutines for macros in util.asm
 	

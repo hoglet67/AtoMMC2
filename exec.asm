@@ -8,7 +8,7 @@
 STAREXEC:
    jsr   read_filename
 
-   OPEN_READ
+   jsr	open_file_read
 
    SETRWPTR NAME     ; get the FAT file size - text files won't have ATM headers
 
@@ -81,7 +81,7 @@ sinkchar:
    jmp   osrdchcode_unhook    ; eek
 
 @allok:
-   PREPGETFRB406         ; get data from pic
+   jsr	prepare_read_data				; get data from pic
 
 plentyleft:
    dec   RDCCNT         ; one less in the pool

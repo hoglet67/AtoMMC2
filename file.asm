@@ -1,3 +1,13 @@
+open_file_read:
+   lda #CMD_FILE_OPEN_READ
+   jsr open_file
+   jmp expect64orless
+
+open_file_write:
+	lda #CMD_FILE_OPEN_WRITE
+
+; Falls through to
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Open file
@@ -9,15 +19,12 @@ open_file:
    pha
    
    jsr   send_name
-   
    pla
    SLOWCMD 
    rts
 
-
-
 send_name:
-   PREPPUTTOB407
+   jsr	prepare_write_data
 
    ldx  #0
    beq  @pumpname
@@ -148,7 +155,7 @@ read_block:
     
     jsr  expect64orless
 
-    PREPGETFRB406           ; tell pic to release the data we just read
+    jsr	prepare_read_data				; tell pic to release the data we just read
 
     ldy  #0
 
@@ -229,7 +236,7 @@ write_block:
     tax                     ; save away the block size
     pha
 
-    PREPPUTTOB407           ; take it
+    jsr	prepare_write_data	; take it
 
     ldy  #0
 
@@ -245,3 +252,13 @@ write_block:
 	jsr				interwritedelay
 	SLOWCMDI 		CMD_WRITE_BYTES	; give command to write
     jmp  			expect64orless
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; delete a file
+;
+; file to be deleted must be opened with open_read
+;
+delete_file:
+   SLOWCMDI		CMD_FILE_DELETE
+   jmp   		expect64orless

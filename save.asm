@@ -26,7 +26,7 @@ STARSAVE:
 ossavecode:
    jsr  $f84f               ; copy data block at $00,x to COS workspace at $c9
 
-   OPEN_WRITE              ; returns with any error in A
+   jsr	open_file_write     ; returns with any error in A
 
    and   #$3f
    beq   @continue
@@ -48,9 +48,9 @@ ossavecode:
    rts
 
 @preparetocont:
-   DELETE_FILE
+   jsr	delete_file
 
-   OPEN_WRITE
+   jsr	open_file_write     
    jsr   expect64orless
 
 @continue:

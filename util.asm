@@ -1,3 +1,9 @@
+;
+; renamed some subs as follows :
+; PREPGETFRB406_SUB	to prepare_read_data
+; PREPPUTTOB407_SUB to prepare_write_data
+;	-- PHS 2013-10-09
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Short delay
@@ -36,25 +42,16 @@ SLOWCMD_DELAY_LOOP:
 .endif
 	rts
 	
-PREPGETFRB406_SUB:
+prepare_read_data:
    lda 				#CMD_INIT_READ
    writeportFAST 	ACMD_REG				
    jmp 				interwritedelay
 
-PREPPUTTOB407_SUB: 
+prepare_write_data: 
    lda 				#CMD_INIT_WRITE
    writeportFAST 	ACMD_REG 			
    jmp 				interwritedelay
  
-OPEN_READ_SUB:
-   lda #CMD_FILE_OPEN_READ
-   jsr open_file
-   jmp expect64orless
-	
-
-DELETE_FILE_SUB:
-   SLOWCMDI		CMD_FILE_DELETE
-   jmp   		expect64orless
    
 .ifdef AVR
 WaitUntilRead:
@@ -86,7 +83,7 @@ WaitWhileBusy:
 ;	bug: this will keep reading until it hits a 0, if there is not one, it will
 ;		 keep going forever......
 getasciizstringto140:
-   PREPGETFRB406
+   jsr				prepare_read_data
 
    ldy  			#$ff
 
@@ -98,11 +95,6 @@ getasciizstringto140:
 
    rts
 
-
-
-
-
-
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Read data to memory from the pic's buffer
@@ -112,7 +104,7 @@ getasciizstringto140:
 ; (RWPTR) points to store
 ;
 read_data_buffer:
-   PREPGETFRB406
+   jsr	prepare_read_data
 
    ldy  #0
 
