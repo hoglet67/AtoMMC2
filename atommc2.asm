@@ -2,8 +2,7 @@
 ;
 ; todo - 
 ;
-; directory support for CAT/LOAD etc?
-;
+
 
 
 ; OS overrides
@@ -157,7 +156,9 @@ AtoMMC2:
 .IFNDEF EOOO
    ; - however we got an interrupt so we need to clear it
    ;
-   jsr irqgetcardtype
+  ; lda   #30               ; as we've had an interrupt we want to wait longer
+  ; sta   CRC               ; for the interface to respond
+   jsr   irqgetcardtype
    pla
    rti
 .ELSE
@@ -175,7 +176,12 @@ AtoMMC2:
 
    ; read card type
    ;
-   jsr irqgetcardtype
+  ; lda   #7                   ; timeout value, ret when crc == -1
+  ; sta   CRC
+   jsr   irqgetcardtype
+  ; bit   CRC
+  ; bmi   @unpatched
+
    tay
 
    ldx   #0
@@ -321,10 +327,23 @@ installhooks:
 
 
 
+
+;igct_delay:
+;   ldx   0
+;   ldy   0
+;igct_inner:
+;   dey
+;   bne   igct_inner
+;   dex
+;   bne   igct_inner
+;
+;   dec   CRC
+;   bmi   igct_quit
+
 irqgetcardtype:
    ; await the 0xaa,0x55,0xaa... sequence which shows that the interface
    ; is initialised and responding
-   ;   
+   ;
    lda   #$fe
    sta   $b40f
    jsr   interwritedelay
@@ -344,6 +363,7 @@ irqgetcardtype:
    lda   #$80
    SLOWCMD $b40f
 
+igct_quit:
    rts
 
 
@@ -480,6 +500,7 @@ comint6:
 
 
 .include "cat.asm"
+.include "cwd.asm"
 .include "cfg.asm"
 .include "crc.asm"
 .include "delete.asm"
@@ -513,6 +534,9 @@ fakekeys:
 com_tab:
    .byte "CAT"
    FNADDR STARCAT
+
+   .byte "CWD"
+   FNADDR STARCWD
 
    .byte "DELETE"
    FNADDR STARDELETE
@@ -618,7 +642,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.1 "
+   .byte "ATOMMC2 V2.2 "
 .IFNDEF EOOO
    .byte "A"
 .ELSE

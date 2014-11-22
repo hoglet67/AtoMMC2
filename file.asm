@@ -8,6 +8,15 @@
 open_file:
    pha
    
+   jsr   send_name
+   
+   pla
+   SLOWCMD $b403
+   rts
+
+
+
+send_name:
    PREPPUTTOB407
 
    ldx  #0
@@ -24,12 +33,7 @@ open_file:
 
    lda  #0                  ; terminate the string
    sta  $b407
-   jsr  interwritedelay
-
-   pla
-   SLOWCMD $b403
-   rts
-
+   jmp  interwritedelay
 
 
 
@@ -107,8 +111,9 @@ read_file:
     stx  LLENGTH             ; zero out the length
 
 @alldone:
-    rts
-
+   lda   #0                   ; close file
+   SLOWCMD $b403
+    jmp  expect64orless
 
 
 

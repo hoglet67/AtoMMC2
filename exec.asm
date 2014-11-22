@@ -6,7 +6,7 @@
 ; Highly experimental :)
 ;
 STAREXEC:
-   jsr   read_filename ; open the supplied filename
+   jsr   read_filename
 
    OPEN_READ
 

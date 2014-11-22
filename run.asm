@@ -5,18 +5,6 @@
 ; Synonymous with *RUN.
 ;
 STARARBITRARY:
-   ldy   #0                  ; copy filename up to NAME buffer
-
-@copyname:
-   lda   $100,y
-   sta   NAME,y
-   iny
-   cmp   #$0d
-   bne   @copyname
-
-   jmp   runname
-
-
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -26,9 +14,18 @@ STARARBITRARY:
 ; with an execution address of C2B2 then execute a 'RUN' command at return.
 ;
 STARRUN:
-    jsr  read_filename       ; copy filename into $140
+   jsr  read_filename       ; copy filename into $140
+   jsr  SKIPSPC
+   ldx  #0
 
-runname:
+copyparams:
+   lda  $100,y
+   sta  $100,x
+   inx
+   iny
+   cmp  #$0d
+   bne  copyparams
+
    lda   MONFLAG
    pha
    lda   #$ff
