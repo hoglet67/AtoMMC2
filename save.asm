@@ -63,12 +63,12 @@ ossavecode:
    lda   SEXEC+1
    sta   $153
    sec
-   lda   SEND+1
-   sbc   SSTART+1
-   sta   $155
    lda   SEND
    sbc   SSTART
    sta   $154
+   lda   SEND+1
+   sbc   SSTART+1
+   sta   $155
 
    ldx   #$ff          ; zero out any data after the name at $140
 

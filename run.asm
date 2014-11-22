@@ -16,7 +16,16 @@ STARARBITRARY:
 STARRUN:
    jsr  read_filename       ; copy filename into $140
    jsr  SKIPSPC
-   sty  $50
+
+   ldx  #0
+copyparams:
+   lda  $100,y
+   sta  $100,x
+   inx
+   iny
+   cmp  #$0d
+   bne  copyparams
+	dey
 
    lda   MONFLAG
    pha
@@ -26,17 +35,6 @@ STARRUN:
    jsr   $f95b
    pla
    sta   MONFLAG
-
-;   ldy  $50		; Doesn't work for cassette system !!!
-;   ldx  #0
-
-;copyparams:
-;   lda  $100,y
-;   sta  $100,x
-;   inx
-;   iny
-;   cmp  #$0d
-;   bne  copyparams
 
 checkbasic:
    lda   LEXEC               ; if this is a non-auto-running basic program
