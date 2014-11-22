@@ -56,7 +56,7 @@ STARRLOAD:
 
    ldx   #$cb                 ; Point to the vector at #CB, #CC
    jsr   RDOPTAD              ; ..and interpret the load address to store it here
-   beq   @rlerr                ; ..can't interpret load address - error
+   beq   rlerr                ; ..can't interpret load address - error
 
    jsr   COSPOST              ; Do COS interpreter post test
    ldx   #$c9                 ; File data starts at #C9
@@ -66,8 +66,7 @@ STARRLOAD:
 
    SETRWPTR NAME              ; get the FAT file size - ignore any ATM headers
 
-   lda   #CMD_FILE_GETINFO
-   SLOWCMD ACMD_REG		; $b403
+   SLOWCMDI 	CMD_FILE_GETINFO
 
    ldx   #13
    jsr   read_data_buffer 
@@ -79,7 +78,7 @@ STARRLOAD:
 
    jmp   read_file
 
-@rlerr:
+rlerr:
    jmp   COSSYN
 
 

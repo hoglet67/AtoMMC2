@@ -60,14 +60,12 @@ STARCAT:
 @continue:
    jsr   send_name
 
-   lda   #CMD_DIR_OPEN              ;  open directory
-   SLOWCMD ACMD_REG			
-   jsr   expect64orless
+   SLOWCMDI CMD_DIR_OPEN              ;  open directory
+   jsr   	expect64orless
 
-@loop:
-   lda   #CMD_DIR_READ              ; get directory item
-   SLOWCMD ACMD_REG		
-   jsr   expect64orless
+GetNextLoop:
+   SLOWCMDI	CMD_DIR_READ              ; get directory item
+   jsr   	expect64orless
 
    cmp   #STATUS_COMPLETE           ; all done
    bne   @printit
@@ -77,7 +75,7 @@ STARCAT:
 @printit:
    jsr   getasciizstringto140    ; a = 0 on exit
 
-   lda   AREAD_DATA_REG			; $b406 ; get attribute byte
+   readportFAST   AREAD_DATA_REG			; $b406 ; get attribute byte
    and   #2                      ; hidden?
    bne   @pause
 
@@ -88,7 +86,7 @@ STARCAT:
    beq   @nofilter
 
    cpx   NAME                    ; and 1st char doesn't match the filter, then get next.
-   bne   @loop
+   bne   GetNextLoop
 
 @nofilter:
    jsr   OSWRCH
@@ -108,7 +106,7 @@ STARCAT:
    rol   a
    bcc   @pause
    rol   a                       ; esc pressed?
-   bcs   @loop
+   bcs   GetNextLoop
 
    jmp   OSCRLF
 

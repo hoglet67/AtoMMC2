@@ -1,7 +1,3 @@
-
-
-
-
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Short delay
@@ -9,34 +5,47 @@
 ; Enough to intersperse 2 writes to the FATPIC.
 ;
 interwritedelay:
-   lda  #4
+.ifndef AVR
+;   lda  #4
+	lda	#8
    sec
 
 @loop:
    sbc  #1
    bne  @loop
+.endif
    rts
 
 ; subroutines for macros in macro.inc
+SLOWCMD_SUB:
+   writeportFAST ACMD_REG
+.ifndef AVR
+SlowLoop:
 
-SLOWCMD_DELAY:
 	lda #0
 	sec 
 SLOWCMD_DELAY_LOOP:
 	sbc #1
 	bne SLOWCMD_DELAY_LOOP
-	rts
 
+   lda ACMD_REG
+   bmi SlowLoop
+.else
+	jsr	WaitWhileBusy	; Keep waiting until not busy
+	lda	ACMD_REG		; get status for client
+.endif
+	rts
+	
 PREPGETFRB406_SUB:
-   lda #CMD_INIT_READ
-   writeportFAST ACMD_REG				
-   jmp interwritedelay
+   lda 				#CMD_INIT_READ
+   writeportFAST 	ACMD_REG				
+   jmp 				interwritedelay
 
 PREPPUTTOB407_SUB: 
-   lda #CMD_INIT_WRITE
-   writeportFAST ACMD_REG 			
-   jmp interwritedelay
-  
+   lda 				#CMD_INIT_WRITE
+   writeportFAST 	ACMD_REG 			
+   jmp 				interwritedelay
+ 
 OPEN_READ_SUB:
    lda #CMD_FILE_OPEN_READ
    jsr open_file
@@ -44,10 +53,28 @@ OPEN_READ_SUB:
 	
 
 DELETE_FILE_SUB:
-   lda   #CMD_FILE_DELETE
-   SLOWCMD ACMD_REG			
-   jmp   expect64orless
+   SLOWCMDI		CMD_FILE_DELETE
+   jmp   		expect64orless
+   
+.ifdef AVR
+WaitUntilRead:
+	lda		ASTATUS_REG			; Read status reg
+	and		#MMC_MCU_READ		; Been read yet ?
+	bne		WaitUntilRead		; nope keep waiting
+	rts
 
+WaitUntilWritten:
+	lda		ASTATUS_REG			; Read status reg
+	and		#MMC_MCU_WROTE		; Been written yet ?
+	beq		WaitUntilWritten	; nope keep waiting
+	rts
+
+WaitWhileBusy:
+	lda		ASTATUS_REG			; Read status reg
+	and		#MMC_MCU_BUSY		; MCU still busy ?
+	bne		WaitWhileBusy		; yes keep waiting
+	rts
+.endif
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -56,16 +83,18 @@ DELETE_FILE_SUB:
 ;
 ; on exit y = character count not including terminating 0
 ;
+;	bug: this will keep reading until it hits a 0, if there is not one, it will
+;		 keep going forever......
 getasciizstringto140:
    PREPGETFRB406
 
-   ldy  #$ff
+   ldy  			#$ff
 
 @loop:
    iny
-   lda  AREAD_DATA_REG	; $b406
-   sta  NAME,y
-   bne  @loop
+   readportFAST 	AREAD_DATA_REG	; $b406
+   sta  			NAME,y
+   bne  			@loop
 
    rts
 
@@ -88,7 +117,7 @@ read_data_buffer:
    ldy  #0
 
 @loop:
-   lda  AREAD_DATA_REG	; $b406
+   readportFAST 	AREAD_DATA_REG	; $b406
    sta  (RWPTR),y
    iny
    dex
@@ -135,10 +164,7 @@ ifen:
 
 
 getcb:
-   lda   			#CMD_GET_CFG_BYTE      ; retreive config byte
-   writeportFAST   	ACMD_REG	
-   jsr   			interwritedelay
-   lda   			ACMD_REG	
+	FASTCMDI		CMD_GET_CFG_BYTE      ; retreive config byte
    rts
 
    

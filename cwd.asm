@@ -24,8 +24,7 @@ set_cwd:
    jsr   CHKNAME
    jsr   send_name            ; put string at $140 to interface
 
-   lda	#CMD_DIR_CWD			; set CWD
-   SLOWCMD ACMD_REG 
+   SLOWCMDI	CMD_DIR_CWD			; set CWD 
    jmp   expect64orless
 
    rts

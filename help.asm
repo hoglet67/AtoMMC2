@@ -21,10 +21,7 @@ STARHELP:
    .byte "INTERFACE F/W VERSION "
    nop
 
-   lda   			#CMD_GET_FW_VER
-   writeportFAST   	ACMD_REG	
-   jsr   			interwritedelay
-   lda   			ACMD_REG	
+	FASTCMDI		CMD_GET_FW_VER
    jsr   			ndotn
    jsr   			OSCRLF
 
@@ -33,10 +30,7 @@ STARHELP:
    .byte "BOOTLOADER VERSION "
    nop
 
-   lda   			#CMD_GET_BL_VER
-   writeportFAST   	ACMD_REG	
-   jsr   			interwritedelay
-   lda   			ACMD_REG	
+	FASTCMDI		CMD_GET_BL_VER
    jsr   			ndotn
    jsr   			OSCRLF
 
@@ -45,8 +39,8 @@ STARHELP:
    jsr   STROUT
    .byte "CARD TYPE: "
    nop
-   lda   #CMD_GET_CARD_TYPE
-   SLOWCMD ACMD_REG	
+;   lda   #CMD_GET_CARD_TYPE
+   SLOWCMDI 		CMD_GET_CARD_TYPE
 
    jsr   bittoindex
    ldy   #4

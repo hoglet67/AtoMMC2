@@ -21,7 +21,7 @@
 
 LATCH		= $BFFF
 SHADOW 		= $FD			; If $BFFF is write only otherwise SHADOW =$BFFF
-MAX		= $16
+MAX		= $8
 ZPBASE		= $90
 ZPLENGTH	= $10
 

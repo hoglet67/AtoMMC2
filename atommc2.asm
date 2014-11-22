@@ -56,12 +56,17 @@ FILTER     =$3cd         ; B - dir walk filter
 ; I/O register base
 ;
 
+.ifdef ALTADDR
+AREG_BASE			= $b408
+.else
 AREG_BASE			= $b400	
+.endif
+
 ACMD_REG			= AREG_BASE+CMD_REG
 ALATCH_REG          = AREG_BASE+LATCH_REG             
 AREAD_DATA_REG      = AREG_BASE+READ_DATA_REG             
 AWRITE_DATA_REG     = AREG_BASE+WRITE_DATA_REG             
-	
+ASTATUS_REG			= AREG_BASE+STATUS_REG	
 
 ; FN       ADDR
 ;
@@ -82,7 +87,7 @@ HEXOUTS    =$f7fa
 STROUT     =$f7d1
 
 
-.include "macros.inc"
+.include "macros.asm"
 
 .SEGMENT "CODE"
 
@@ -174,17 +179,14 @@ AtoMMC2:
 @quiet:
    jsr   installhooks
 
-   lda   #CMD_GET_CFG_BYTE             ; get config byte
-   sta   ACMD_REG			
-   jsr   interwritedelay
-
 ;    $b40f    $b001
 ;      0        0    [inv. sh, sh pressed]     0
 ;      0        1    [inv. sh, sh not pressed] 1
 ;      1        0    [norm sh, sh pressed]     1
 ;      1        1    [norm sh, sh not pressed] 0
 
-   lda   ACMD_REG				; 'normal shift' bit is 6
+	FASTCMDI	CMD_GET_CFG_BYTE             ; get config byte
+						; 'normal shift' bit is 6
    asl   a              ;
    eor   $b001          ;
    bpl   @unpatched     ;
@@ -197,7 +199,6 @@ AtoMMC2:
    sta   RDCVEC+1
 
 @unpatched:
-
    pla
    tax
    pla
@@ -285,25 +286,20 @@ irqgetcardtype:
    ; await the 0xaa,0x55,0xaa... sequence which shows that the interface
    ; is initialised and responding
    ;
-   lda   #CMD_GET_HEARTBEAT
-   sta   ACMD_REG			
-   jsr   interwritedelay
-   lda   ACMD_REG			
+	FASTCMDI 	CMD_GET_HEARTBEAT
    cmp   #$aa
    bne   irqgetcardtype
 
-   lda   #CMD_GET_HEARTBEAT
-   sta   ACMD_REG			
-   jsr   interwritedelay
-   lda   ACMD_REG			
+irqgetcardtype2:
+	FASTCMDI 	CMD_GET_HEARTBEAT
    cmp   #$55
    bne   irqgetcardtype
 
    ; send read card type command - this also de-asserts the interrupt
 
-   lda   #CMD_GET_CARD_TYPE
-   SLOWCMD ACMD_REG		
+   SLOWCMDI 	CMD_GET_CARD_TYPE
 
+   
 igct_quit:
    rts
 
@@ -325,10 +321,10 @@ osrdchcode:
    cld
    stx   $e4
    sty   $e5
-
+	
    ldx   FKIDX
    lda   fakekeys,x
-   cmp #$0d
+   cmp	#$0d
    beq   @unpatch
 
    inx
@@ -342,20 +338,19 @@ osrdchcode:
 @unpatch:
    ; restore OSRDCH, continue on to read a char
    ;
-;   ldx   $e4
-;   ldy   $e5
+ ;  ldx   $e4
+ ;  ldy   $e5
 
 osrdchcode_unhook:
    lda   #$94
    sta   RDCVEC
    lda   #$fe
    sta   RDCVEC+1
-
+   
 ;   plp
-   lda #$0d
+   lda 	#$0d
    pha
-   jmp $fe5c
-
+   jmp 	$fe5c
 ;   jmp   (RDCVEC)
 
 
@@ -595,14 +590,14 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.91"
+   .byte "ATOMMC2 V2.94"
 .IFNDEF EOOO
    .byte "A"
 .ELSE
    .byte "E"
 .ENDIF
    .byte $0d,$0a
-   .byte " (C) 2008-2011  "
+   .byte " (C) 2008-2013  "
    .byte "CHARLIE ROBSON. "
 
 

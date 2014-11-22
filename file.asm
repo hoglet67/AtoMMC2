@@ -11,7 +11,7 @@ open_file:
    jsr   send_name
    
    pla
-   SLOWCMD ACMD_REG	; $b403
+   SLOWCMD 
    rts
 
 
@@ -110,7 +110,7 @@ read_file:
 @alldone:
 	jmp 	closefile
 ;   lda   #CMD_FILE_CLOSE       ; close file
-;   SLOWCMD ACMD_REG		; $b403
+;   SLOWCMD 
 ;    jmp  expect64orless
 
 
@@ -144,8 +144,7 @@ read_block:
 	; ask PIC for (A) bytes of data (0=256)
 	writeportFAST	ALATCH_REG	; set ammount to read
 	jsr				interwritedelay
-	lda				#CMD_READ_BYTES		; set command
-	SLOWCMD 		ACMD_REG
+	SLOWCMDI 		CMD_READ_BYTES		; set command
     
     jsr  expect64orless
 
@@ -154,7 +153,7 @@ read_block:
     ldy  #0
 
 @loop:
-    lda  AREAD_DATA_REG	; $b406 ; then read it
+    readportFAST	AREAD_DATA_REG	; then read it
     sta  (RWPTR),y
     iny
     dex
@@ -207,11 +206,8 @@ write_file:
     jsr  write_file_adapter
 
 closefile:
-    lda  #CMD_FILE_CLOSE     ; close the file
-; BUG -- should be CMD_REG ??? PHS 2011-05-26
-;    SLOWCMD ADIR_CMD_REG	; $b402 
-	SLOWCMD ACMD_REG
-    jmp  expect64orless
+    SLOWCMDI	CMD_FILE_CLOSE     ; close the file 
+    jmp  		expect64orless
 
 
 ; adapter - falls through to write_block
@@ -247,6 +243,5 @@ write_block:
     pla                     	; write block command
 	writeportFAST	ALATCH_REG	; ammount to write
 	jsr				interwritedelay
-	lda				#CMD_WRITE_BYTES	; give command to write
-    SLOWCMD 		ACMD_REG	
+	SLOWCMDI 		CMD_WRITE_BYTES	; give command to write
     jmp  			expect64orless

@@ -12,8 +12,7 @@ STAREXEC:
 
    SETRWPTR NAME     ; get the FAT file size - text files won't have ATM headers
 
-   lda   #CMD_FILE_GETINFO
-   SLOWCMD ACMD_REG		; $b403
+   SLOWCMDI CMD_FILE_GETINFO	
 
    ldx   #13
    jsr   read_data_buffer
@@ -43,9 +42,9 @@ execrdch:
    php
    cld
 
-@sinkchar:
+sinkchar:
    lda   RDCCNT         ; exhausted our little pool?
-   bne   @plentyleft
+   bne   plentyleft
 
    lda   RDCLEN+1       ; are there pages left in the file?
    bne   @nextread16
@@ -70,10 +69,10 @@ execrdch:
 
 @refillpool:
    lda   			RDCCNT         		; recover count
-   writeportFAST	ALATCH_REG	; set ammount to read
+   writeportFAST	ALATCH_REG			; set ammount to read
    jsr				interwritedelay
-   lda				#CMD_READ_BYTES		; set command
-   SLOWCMD 			ACMD_REG
+
+   SLOWCMDI 		CMD_READ_BYTES		; set command	
    cmp   			#STATUS_COMPLETE
    beq   			@allok
 
@@ -84,7 +83,7 @@ execrdch:
 @allok:
    PREPGETFRB406         ; get data from pic
 
-@plentyleft:
+plentyleft:
    dec   RDCCNT         ; one less in the pool
    bne   @finally
 
@@ -99,18 +98,16 @@ execrdch:
    lda   #$fe
    sta   RDCVEC+1
 
-   lda   AREAD_DATA_REG	; $b406         ; get char from PIC
-
-	lda #27
+	readportFAST   AREAD_DATA_REG	; get char from PIC/AVR
    plp
    rts
 
 
 @finally:
-   lda   AREAD_DATA_REG	; $b406         ; get char from PIC
+	readportFAST   AREAD_DATA_REG	; get char from PIC/AVR
 
    cmp   #$0a            ; lose LFs - god this is so ghetto i can't believe i've done it
-   beq   @sinkchar     ; this will fubar if the last char in a file is A. which is likely. BEWARE!
+   beq   sinkchar     	; this will fubar if the last char in a file is A. which is likely. BEWARE!
 
    plp
    rts

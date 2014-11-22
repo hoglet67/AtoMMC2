@@ -16,8 +16,8 @@ STARARBITRARY:
 STARRUN:
    jsr  read_filename       ; copy filename into $140
    jsr  SKIPSPC
-
    ldx  #0
+
 copyparams:
    lda  $100,y
    sta  $100,x
@@ -25,8 +25,8 @@ copyparams:
    iny
    cmp  #$0d
    bne  copyparams
-	dey
-
+   dey
+	
    lda   MONFLAG
    pha
    lda   #$ff

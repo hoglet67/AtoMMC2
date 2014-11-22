@@ -10,7 +10,7 @@
 ; an 0utput.
 ;
 STARPBD:
-   lda   #$a0
+   lda   #CMD_GET_PORT_DDR
    sta   $ce
    jmp   do_cfg_cmd
 
@@ -26,7 +26,7 @@ STARPBD:
 ; If it is an output you will see the last value written to it.
 ;
 STARPBV:
-   lda   #$a2
+   lda   #CMD_READ_PORT
    sta   $ce
    jmp   do_cfg_cmd
 
@@ -43,31 +43,40 @@ STARPBV:
 ;     6 controls the action of the SHIFT key on boot. 1 = SHIFT+BREAK runs menu, 0 = menu runs unless SHIFT-BREAK pressed.
 ;     5 controls whether the interface generates an IRQ on reset. 1 = generate, 0 = don't.
 ;
-;
-; **NOTE** This code relies on CMD_SET_CFG_BYTE being equal to CMD_GET_CFG_BYTE+1
 
 STARCFG:
    lda   #CMD_GET_CFG_BYTE
-;   sta   $ce
+   sta   $ce
 
    ; fall into ...
 
-do_cfg_cmd:
-   ldx   #$cb             ; scan parameter - print existing val if none
-   jsr   RDOPTAD
-   bne   @param1valid
+;
+; do_cmd_cfg: is used by *CFG, *PBD and *PBV
+;
+; It rlies on the set port code having a function code one more than the get port code :
+;
+; get 				value		set					value
+; CMD_GET_PORT_DDR 	$A0			CMD_SET_PORT_DDR	$A1
+; CMD_READ_PORT		$A2			CMD_WRITE_PORT		$A3
+; CMD_GET_CFG_BYTE	$F0			CMD_SET_CFG_BYTE	$F1
+;
 
-   lda   $ce              ; read config register
-   sta   ACMD_REG	
-   jsr   interwritedelay
-   lda   ACMD_REG	
-   jsr   HEXOUT
-   jmp   OSCRLF
+do_cfg_cmd:
+   ldx   			#$cb             ; scan parameter - print existing val if none
+   jsr   			RDOPTAD
+   bne   			@param1valid
+
+   lda   			$ce  			; read config register
+   FASTCMD
+   jsr   			HEXOUT
+   jmp   			OSCRLF
 
 @param1valid:
-   lda   			#CMD_SET_CFG_BYTE
+   lda   			$cb				; get read parameter
    writeportFAST   	ALATCH_REG		; $b40e ; latch the value
    jsr   			interwritedelay
-   lda   			#CMD_SET_CFG_BYTE
-   writeportFAST   	ACMD_REG	; $b40f
+   ldx   			$ce             ; Load function code
+   inx								; change get code to put
+   txa
+   writeportFAST   	ACMD_REG		; $b40f
    rts

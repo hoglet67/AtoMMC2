@@ -9,6 +9,7 @@ CMD_REG                         =   $00
 LATCH_REG                       =   $01
 READ_DATA_REG                   =   $02
 WRITE_DATA_REG                  =   $03
+STATUS_REG                      =   $04
 
 ; // DIR_CMD_REG commands
 CMD_DIR_OPEN                    =   $00
@@ -70,6 +71,15 @@ ERROR_INVALID_DRIVE             =   $09
 ERROR_READ_ONLY                 =   $0A
 ERROR_ALREADY_MOUNT             =   $0A
 
+; // STATUS_REG bit masks
+; //
+; // MMC_MCU_BUSY set by a write to CMD_REG by the Atom, cleared by a write by the MCU
+; // MMC_MCU_READ set by a write by the Atom (to any reg), cleared by a read by the MCU
+; // MCU_MMC_WROTE set by a write by the MCU cleared by a read by the Atom (any reg except status).
+; //
+MMC_MCU_BUSY                    =   $01
+MMC_MCU_READ                    =   $02
+MMC_MCU_WROTE                   =   $04
 
 
 

@@ -7,8 +7,18 @@
    .byte >addr, <addr
 .endmacro
 
+.macro readportFAST port
+.ifdef AVR
+	jsr	WaitUntilWritten
+.endif
+	lda	port
+.endmacro
+
 .macro writeportFAST port
     sta port
+.ifdef AVR
+	jsr WaitUntilRead
+.endif
 .endmacro
 
 .macro REPERROR addr
@@ -19,23 +29,40 @@
    jmp reportFailure
 .endmacro
 
-.macro SLOWCMD port
-   writeportFAST port
-   jsr	SLOWCMD_DELAY
-   lda port
-   bmi *-5
+; Note SLOWCMD used to take a port number, but since ALL calls used APORT_CMD
+; it is more code size efficient to convert it to a subroutine call, that always
+; uses ACMD_PORT.
+.macro SLOWCMD
+	jsr	SLOWCMD_SUB
 .endmacro
+
+.macro SLOWCMDI command
+	lda	#command
+	SLOWCMD
+.endmacro
+
+; Fast command, command port write followed by interwrite delay on PIC,
+; Simply an alias for SLOWCMD on AVR.
+.macro FASTCMD
+.ifndef AVR
+	writeportFAST	ACMD_REG
+	jsr				interwritedelay
+	lda				ACMD_REG
+.else
+	SLOWCMD
+.endif
+.endmacro
+
+; Immediate version of fastcmd
+.macro FASTCMDI	command
+	lda				#command
+	FASTCMD
+.endmacro
+
 
 .macro PREPPUTTOB407
    jsr	PREPPUTTOB407_SUB
 .endmacro
-
-; never used
-;.macro SENDBYTE val
-;   lda #val
-;   writeportFAST AWRITE_DATA_REG		
-;   jsr interwritedelay
-;.endmacro
 
 .macro PREPGETFRB406
    jsr	PREPGETFRB406_SUB
@@ -56,13 +83,6 @@
    lda #CMD_FILE_OPEN_WRITE
    jsr open_file
 .endmacro
-
-; never used !
-;.macro CLOSE_FILE
-;   lda #CMD_FILE_CLOSE
-;   SLOWCMD ACMD_REG			
-;   jsr   expect64orless
-;.endmacro
 
 .macro DELETE_FILE
    jsr   DELETE_FILE_SUB
