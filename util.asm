@@ -76,16 +76,6 @@ read_data_buffer:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
-; Perform slow command initialisation and expect a 63 return code.
-;
-expect63:
-   cmp  #63
-   bne  reportDiskFailure
-   rts
-
-
-;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
-;
 ; Perform slow command initialisation and expect a return code <= 64
 ;
 expect64orless:

@@ -26,8 +26,34 @@ STARSAVE:
 ossavecode:
    jsr  $f84f               ; copy data block at $00,x to COS workspace at $c9
 
-   jsr   open_file
+   OPEN_WRITE              ; returns with any error in A
 
+   and   #$3f
+   beq   @continue
+
+   cmp   #$08              ; FILE EXISTS
+   beq   @askover   
+
+   jmp   expect64orless    ; other kind of error
+
+@askover:
+   jsr   overwrite
+
+   pha
+   jsr   OSCRLF
+   pla
+   cmp   #'Y'
+   beq   @preparetocont
+
+   rts
+
+@preparetocont:
+   DELETE_FILE
+
+   OPEN_WRITE
+   jsr   expect64orless
+
+@continue:
    lda   SLOAD           ; tag the file info onto the end of the filename data
    sta   $150
    lda   SLOAD+1
@@ -64,8 +90,32 @@ ossavecode:
 
    jsr   write_file         ; save the main body of data
 
-   lda   #0               ; close the file
-   SLOWCMD $b403
-   jsr   expect63
+   CLOSE_FILE
 
+   bit   MONFLAG             ; 0 = mon, ff = nomon
+   bmi   @noprint
+
+   ldx   #5
+   
+@cpydata:
+   lda   $150,x
+   sta   LLOAD,x
+   dex
+   bpl   @cpydata
+   
+   jsr   print_fileinfo
+
+@noprint:
    jmp   OSCRLF
+
+
+
+
+
+overwrite:
+   jsr   STROUT
+   .byte "OVERWRITE (Y):"
+   nop
+
+   jsr   OSRDCH
+   jmp   OSWRCH

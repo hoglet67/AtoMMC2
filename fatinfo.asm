@@ -7,7 +7,8 @@
 ;
 STARFATINFO:
     jsr  read_filename
-    jsr  open_file
+
+    OPEN_READ
 
     SETRWPTR NAME          ; get the FAT file size - text files won't have ATM headers
 

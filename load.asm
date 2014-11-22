@@ -27,7 +27,7 @@ osloadcode:
     ;
     jsr  CHKNAME
 
-    jsr  open_file
+    OPEN_READ
     jsr  read_info
 
     bit  MONFLAG             ; 0 = mon, ff = nomon
@@ -62,7 +62,7 @@ STARRLOAD:
    ldx   #$c9                 ; File data starts at #C9
 
    jsr   CHKNAME
-   jsr   open_file
+   OPEN_READ
 
    SETRWPTR NAME              ; get the FAT file size - ignore any ATM headers
 
@@ -102,10 +102,12 @@ noramstr:
 ; waits for break.
 ;
 STARROMLOAD:
-   lda   $bffd                ; map $7000-$7fff to $7000 - needs ramrom with latest CPLD code
-   and   #$fe
-   sta   $bffe
+;   lda   $bffd                ; map $7000-$7fff to $7000 - needs ramrom with latest CPLD code
+;   and   #$fe
 
+   lda #0
+
+   sta   $bffe                ; ensure there's RAM at 7000
    ora   #1                   ; for 'selectrom' code later
    sta   $cc
 
@@ -122,11 +124,13 @@ STARROMLOAD:
    jsr   $f844                ; set $c9\a = $140, set x = $c9
 
    jsr   CHKNAME
-   jsr   open_file
+   OPEN_READ
 
    lda   #0
    sta   LLOAD
    sta   LLENGTH
+
+   sta   $cb
 
    lda   #$10
    sta   LLENGTH+1
@@ -134,8 +138,8 @@ STARROMLOAD:
    sta   LLOAD+1
 
    jsr   read_file
- 
-   lda   #0
-   sta   $cb
-   jmp   selectrom
 
+   ; cb = rom num for bfff
+   ; cc = option latch at bffe
+   ;
+   jmp   selectrom

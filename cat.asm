@@ -16,24 +16,21 @@ STARCAT:
     sta  FILTER                  ; FILTER = 0 if we want all entries shown
 
 @nofiltset:
-    lda  #0                      ;  get first directory item
+    lda  #0                      ;  open directory
     SLOWCMD $b402
     jsr  expect64orless
-
-    cmp  #64                     ; nothing to do
-    bne  @loop
-
-@done:
-    rts
 
 @loop:
     lda #1                      ; get directory item
     SLOWCMD $b402
     jsr  expect64orless
 
-    cmp  #64                     ; all done
-    beq  @done
+    cmp  #$40                   ; all done
+    bne  @printit
 
+    rts
+
+@printit:
     jsr  getasciizstringto140    ; a = 0 on exit
 
     lda  $b406                   ; get attribute byte
@@ -70,3 +67,7 @@ STARCAT:
     bcs  @loop
 
     jmp  OSCRLF
+
+@done:
+    rts
+

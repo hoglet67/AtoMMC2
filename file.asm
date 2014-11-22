@@ -3,29 +3,33 @@
 ; Open file
 ;
 ; $140 = name
+; a = read/write $01 = read, $11 = write
 ;
 open_file:
-    PREPPUTTOB407
+   pha
+   
+   PREPPUTTOB407
 
-    ldx  #0
-    beq  @pumpname
+   ldx  #0
+   beq  @pumpname
 
 @nextchar:
-    sta  $b407
-    inx
+   sta  $b407
+   inx
 
 @pumpname:
-    lda  NAME,x              ; write filename to filename buffer
-    cmp  #$0d
-    bne  @nextchar
+   lda  NAME,x              ; write filename to filename buffer
+   cmp  #$0d
+   bne  @nextchar
 
-    lda  #0                  ; terminate the string
-    sta  $b407
-    jsr  interwritedelay
+   lda  #0                  ; terminate the string
+   sta  $b407
+   jsr  interwritedelay
 
-    lda  #1
-    SLOWCMD $b403
-    jmp  expect63
+   pla
+   SLOWCMD $b403
+   rts
+
 
 
 
@@ -135,7 +139,7 @@ read_block:
     tax
 
     SLOWCMD $b404          ; ask PIC for (A) bytes of data (0=256)
-    jsr  expect63
+    jsr  expect64orless
 
     PREPGETFRB406           ; tell pic to release the data we just read
 
@@ -197,7 +201,7 @@ write_file:
 @closefile:
     lda  #0                  ; close the file
     SLOWCMD $b402
-    jmp  expect63
+    jmp  expect64orless
 
 
 ; adapter - falls through to write_block
@@ -232,4 +236,4 @@ write_block:
 
     pla                     ; write block command
     SLOWCMD $b405
-    jmp  expect63
+    jmp  expect64orless

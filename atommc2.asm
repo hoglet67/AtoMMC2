@@ -2,7 +2,7 @@
 ;
 ; todo - 
 ;
-; directory support for CAT/LOAD etc.
+; directory support for CAT/LOAD etc?
 ;
 
 
@@ -54,7 +54,7 @@ RWLEN      =$3cb         ; W - count of bytes to write
 FILTER     =$3cd         ; B - dir walk filter 
 
 
-; FN      ADDR        REGS PRESERVED
+; FN       ADDR
 ;
 OSWRCH     =$fff4
 OSRDCH     =$ffe3
@@ -68,9 +68,9 @@ RDOPTAD    =$f893
 BADNAME    =$f86c
 WSXFER2    =$f85C
 COPYNAME   =$f818
-HEXOUT     =$f802       ; x,y
-HEXOUTS    =$f7fa       ; x,y
-STROUT     =$f7d1       ; x
+HEXOUT     =$f802
+HEXOUTS    =$f7fa
+STROUT     =$f7d1
 
 
 .macro FNADDR addr
@@ -120,7 +120,28 @@ STROUT     =$f7d1       ; x
    sta RWPTR+1
 .endmacro
 
+.macro OPEN_READ
+   lda #$01
+   jsr open_file
+   jsr expect64orless
+.endmacro
 
+.macro OPEN_WRITE
+   lda #$11
+   jsr open_file
+.endmacro
+
+.macro CLOSE_FILE
+   lda #0
+   SLOWCMD $b403
+   jsr   expect64orless
+.endmacro
+
+.macro DELETE_FILE
+   lda   #$40
+   SLOWCMD $b403
+   jsr   expect64orless
+.endmacro
 
 
 .SEGMENT "CODE"
@@ -133,12 +154,16 @@ AtoMMC2:
    bvs @initialise
 
    ; don't initialise the firmware
+.IFNDEF EOOO
    ; - however we got an interrupt so we need to clear it
    ;
    jsr irqgetcardtype
    pla
    rti
-
+.ELSE
+   ; the E000 build 
+   jmp   $c2b2             ; set #2900 text space and enter command handler
+.ENDIF
 
 @initialise:
    tya
@@ -186,26 +211,17 @@ AtoMMC2:
    ; none = 0, mmc = 1, sdv1 = 2, sdv2 = 4
    ;
    tya
-   beq   @showcardtype   ; 0 = no card
-
-   lsr   a               ; 1,2,4 -> 0,1,2
-   and   #3              ; just in case
-   clc
-   adc   #1              ; -> 1,2,3
-   asl   a
-   asl   a               ; -> 4, 8, 12
-
-@showcardtype:
-   tax
-   ldy   #3
+   jsr   bittoindex
+   ldy   #0
 
 @sctloop:
    lda   cardtypes,x
    and   #$bf
    sta   $801c,y
    inx
-   dey
-   bpl   @sctloop
+   iny
+   cpy   #4
+   bne   @sctloop
 
 
 @quiet:
@@ -234,14 +250,41 @@ AtoMMC2:
    sta   RDCVEC+1
 
 @unpatched:
+
    pla
    tax
    pla
    tay
 
+.IFDEF EOOO
+   jmp   $c2b2             ; set #2900 text space and enter command handler
+.ENDIF
+
 irqveccode:
    pla                 ; pop the accumulator as saved by the irq handler
    rti
+
+
+
+; takes a card type in A
+; 0 = no card
+; bit 1 = type 1 (MMC)
+; bit 2 = type 2 (SD)
+; etc etc
+;
+bittoindex:
+   ora   #8             ; bit 3 -- 'no card available' - to ensure we stop 
+   sta   ZPTW
+
+   lda   #-4            ; spot the bit
+   clc
+@add:
+   adc   #4
+   lsr   ZPTW
+   bcc   @add
+
+   tax
+   rts
 
 
 
@@ -256,8 +299,9 @@ installhooks2:
    cpx   #16
    bne   @announce
 
-   jsr   ifen           ; interface enable interrupt
-
+.IFNDEF EOOO
+   jsr   ifen           ; interface enable interrupt, if at A000
+.ENDIF
    
 ; install hooks. 6 vectors, 12 bytes
 ;
@@ -298,9 +342,7 @@ irqgetcardtype:
    ; send read card type command - this also de-asserts the interrupt
 
    lda   #$80
-   sta   $b40f
-   jsr   interwritedelay
-   lda   $b40f
+   SLOWCMD $b40f
 
    rts
 
@@ -440,6 +482,7 @@ comint6:
 .include "cat.asm"
 .include "cfg.asm"
 .include "crc.asm"
+.include "delete.asm"
 .include "exec.asm"
 .include "fatinfo.asm"
 .include "help.asm"
@@ -457,7 +500,8 @@ comint6:
 
 
 cardtypes:
-   .byte "--- CMM DS  CHDS"
+   .byte " MMC  SDSDHC N/A"
+   ;      1111222244448888
 
 fullvecdat:
    .word irqveccode, osclicode, $fe52, $fe94, osloadcode, ossavecode
@@ -469,6 +513,9 @@ fakekeys:
 com_tab:
    .byte "CAT"
    FNADDR STARCAT
+
+   .byte "DELETE"
+   FNADDR STARDELETE
 
    .byte "EXEC"
    FNADDR STAREXEC
@@ -527,12 +574,20 @@ SQ=34   ; "
 diskerrortab:
    .byte $0d
    .byte "DISK FAULT",$0d
+   .byte "INTERNAL ERROR",$0d
    .byte "NOT READY",$0d
    .byte "NOT FOUND",$0d
    .byte "NO PATH",$0d
-   .byte "NOT OPEN",$0d
-   .byte "NO CARD",$0d
+   .byte "INVALID NAME",$0d
+   .byte "ACCESS DENIED",$0d
+   .byte "EXISTS",$0d
+   .byte "INVALID OBJECT",$0d
+   .byte "WRITE PROTECTED",$0d
+   .byte "INVALID DRIVE",$0d
+   .byte "NOT ENABLED",$0d
    .byte "NO FILESYSTEM",$0d
+   .byte $0d                     ; mkfs error
+   .byte "TIMEOUT",$0d
    .byte "EEPROM ERROR",$0d
    .byte "FAILED",$0d
    .byte "NOT NOW",$0d
@@ -563,7 +618,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 - V1.8"
+   .byte "ATOMMC2 V2.0 E"
    .byte $0d,$0a
    .byte " (C) 2008-2010  "
    .byte "CHARLIE ROBSON. "

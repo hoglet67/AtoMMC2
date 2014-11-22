@@ -15,36 +15,38 @@ STARUROM:
 ; entry point for 3rd party usage such as ROMLOAD
 
 selectrom:
-   lda   $bffd             ; cache interface option bits
-   sta   $cc
-
    jsr   ifdi              ; interface disable interrupt
    
    ldx   #@rtn_end-@rtn
 
 @movefn:
    lda   @rtn,x
-   sta   $8200,x
+   sta   NAME,x
    dex
    bpl   @movefn
-
-   jmp   $8200
-
-
-@rtn:
-   lda   $cb               ; change the ROM
-   sta   $bfff
-
-   lda   $cc               ; set the option bits to control the $7000/$a000 page mapping
-   sta   $bffe
 
    jsr   STROUT
    .byte "<PRESS BREAK>"
    nop
 
-   lda   #0
+   lda   #0                ; ROM in $a000 please 
+   sta   $cc
+
+   jmp   NAME
+
+
+
+@rtn:
+
+   lda   $cc               ; option bits - 
+   sta   $bffe
+
+   lda   $cb               ; change the ROM
+   sta   $bfff
+
+   sec
 
 @infinite:
-   beq   @infinite
+   bcs   @infinite
 
 @rtn_end:

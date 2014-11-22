@@ -7,7 +7,8 @@
 ;
 STAREXEC:
    jsr   read_filename ; open the supplied filename
-   jsr   open_file
+
+   OPEN_READ
 
    SETRWPTR NAME     ; get the FAT file size - text files won't have ATM headers
 
@@ -70,8 +71,10 @@ execrdch:
 @refillpool:
    lda   RDCCNT         ; recover count
    SLOWCMD $b404
-   cmp   #63          ; error - bail
+   cmp   #$40
    beq   @allok
+
+   ; error! bail!
 
    jmp   osrdchcode_unhook    ; eek
 
