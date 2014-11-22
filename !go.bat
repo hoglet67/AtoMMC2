@@ -1,17 +1,17 @@
 @echo off
+del /Q *.rom
 
-del /Q atommc2.????.rom
-
-atasm -v -r -f255 -oatommc2.rom cli.asm >trace.lst
+bin\ca65 -l atommc2.asm
 if not "%errorlevel%" == "0" goto failed
 
-rem bin2atm atommc2.rom load=0x8200 out=ri
-rem crccitt atommc2.rom
+bin\ld65 atommc2.o -C atommc2.lkr -o atommc2.rom
+if not "%errorlevel%" == "0" goto failed
 
-copy atommc2.rom D:\_Dev_\dev\user\CharlieRobson\mess137\roms\atom\mmc.rom /Y
+copy atommc2.rom "%mess137%\roms\atom\mmc.rom" /Y
+
+del *.o
 
 :done
-pause
 exit /B
 
 :failed

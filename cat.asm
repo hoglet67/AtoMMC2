@@ -2,70 +2,71 @@
 ;
 ; *CAT [filter]
 ;
-;  produce a directory listing of the files in the root folder of the card
+; Produce a directory listing of the files in the root folder of the card, optionally
+; displaying only those entries starting with the character specified as the filter.
 ;
-STARCAT
-    lda #0
-    sta FILTER
+STARCAT:
+    lda  #0
+    sta  FILTER
 
-    jsr SKIPSPC                 ; do we have a filter?
-    cmp #$0d
-    beq sct_nofiltset
+    jsr  SKIPSPC                 ; do we have a filter?
+    cmp  #$0d
+    beq  @nofiltset
 
-    sta FILTER                  ; FILTER = 0 if we want all entries shown
+    sta  FILTER                  ; FILTER = 0 if we want all entries shown
 
-sct_nofiltset
-    lda #0                      ;  get first directory item
+@nofiltset:
+    lda  #0                      ;  get first directory item
     SLOWCMD $b402
-    jsr expect64orless
+    jsr  expect64orless
 
-    cmp #64                     ; nothing to do
-    bne sct_loop
+    cmp  #64                     ; nothing to do
+    bne  @loop
 
-sct_done
+@done:
     rts
 
-sct_loop
+@loop:
     lda #1                      ; get directory item
     SLOWCMD $b402
     jsr  expect64orless
 
-    cmp #64                     ; all done
-    beq sct_done
+    cmp  #64                     ; all done
+    beq  @done
 
-    jsr getasciizstringto140    ; a = 0 on exit
+    jsr  getasciizstringto140    ; a = 0 on exit
 
-    lda $b406                   ; get attribute byte
-    and #2                      ; hidden?
-    bne sct_pause
+    lda  $b406                   ; get attribute byte
+    and  #2                      ; hidden?
+    bne  @pause
 
-    lda NAME                    ; pre-load 1st char of name
-    ldy #0
+    lda  NAME                    ; pre-load 1st char of name
+    ldy  #0
 
-    ldx FILTER                  ; if filter set...
-    beq sct_nofilter
+    ldx  FILTER                  ; if filter set...
+    beq  @nofilter
 
-    cpx NAME                    ; and 1st char doesn't match the filter, then get next.
-    bne sct_loop
+    cpx  NAME                    ; and 1st char doesn't match the filter, then get next.
+    bne  @loop
 
-sct_nofilter
-    jsr OSWRCH
+@nofilter:
+    jsr  OSWRCH
 
     iny
-    lda NAME,y                  ; get next char of filename
-    bne sct_nofilter
+    lda  NAME,y                  ; get next char of filename
+    bne  @nofilter
 
-    jsr OSCRLF
+    jsr  OSCRLF
 
-sct_pause
-    bit $b002                   ; stick here while REPT/shift/ctrl pressed
-    bvc sct_pause
-    lda $b001
-    rol a                       ; shift/rept pressed?
-    bcc sct_pause
-    rol a
-    bcc sct_pause
-    rol a                       ; esc pressed?
-    bcs sct_loop
+@pause:
+    bit  $b002                   ; stick here while REPT/shift/ctrl pressed
+    bvc  @pause
+    lda  $b001
+    rol  a                       ; shift/rept pressed?
+    bcc  @pause
+    rol   a
+    bcc  @pause
+    rol  a                       ; esc pressed?
+    bcs  @loop
 
-    jmp OSCRLF
+    jmp  OSCRLF

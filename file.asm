@@ -1,34 +1,31 @@
-
-
-
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Open file
 ;
 ; $140 = name
 ;
-open_file
+open_file:
     PREPPUTTOB407
 
-    ldx #0
-    beq opn_pumpname
+    ldx  #0
+    beq  @pumpname
 
-opn_nextchar
-    sta $b407
+@nextchar:
+    sta  $b407
     inx
 
-opn_pumpname
-    lda NAME,x              ; write filename to filename buffer
-    cmp #$0d
-    bne opn_nextchar
+@pumpname:
+    lda  NAME,x              ; write filename to filename buffer
+    cmp  #$0d
+    bne  @nextchar
 
-    lda #0                  ; terminate the string
-    sta $b407
-    jsr interwritedelay
+    lda  #0                  ; terminate the string
+    sta  $b407
+    jsr  interwritedelay
 
-    lda #1
+    lda  #1
     SLOWCMD $b403
-    jmp expect63
+    jmp  expect63
 
 
 
@@ -40,28 +37,28 @@ opn_pumpname
 ;
 ; leave the LOAD address in RAM alone if LEXEC is FF.
 ;
-read_info
+read_info:
     ; read the file header to $140
 
     SETRWPTR NAME
 
-    lda #22
-    jsr read_block
+    lda  #22
+    jsr  read_block
 
-    ldy #5                  ; index of msb of length
-    ldx #3                  ; set up to copy 4 bytes - exec & length
+    ldy  #5                  ; index of msb of length
+    ldx  #3                  ; set up to copy 4 bytes - exec & length
 
-    bit LEXEC               ; if bit 7 is set on entry we don't overwrite
-    bmi rin_copyfileinfo    ; the load address
+    bit  LEXEC               ; if bit 7 is set on entry we don't overwrite
+    bmi  @copyfileinfo    ; the load address
 
-    ldx #5                  ; otherwise copy 6 bytes including load
+    ldx  #5                  ; otherwise copy 6 bytes including load
 
-rin_copyfileinfo
-    lda $150,y
-    sta LLOAD,y
+@copyfileinfo:
+    lda  $150,y
+    sta  LLOAD,y
     dey
     dex
-    bpl rin_copyfileinfo
+    bpl  @copyfileinfo
 
     rts
 
@@ -78,49 +75,49 @@ rin_copyfileinfo
 ; LLENGTH = bytes to read
 ;
 
-rf_read
-    lda #0
-    jsr rfi_adapter
+read_file_read:
+    lda  #0
+    jsr  read_file_adapter
 
-    inc LLOAD+1
-    dec LLENGTH+1
+    inc  LLOAD+1
+    dec  LLENGTH+1
 
-read_file
-    lda LLENGTH+1           ; any pages left?
-    bne rf_read
+read_file:
+    lda  LLENGTH+1           ; any pages left?
+    bne  read_file_read
 
-    lda LLENGTH             ; any stragglers?
-    beq rf_alldone
+    lda  LLENGTH             ; any stragglers?
+    beq  @alldone
 
-    jsr rfi_adapter
+    jsr  read_file_adapter
 
-    lda LLOAD               ; final adjustment to write pointer
+    lda  LLOAD               ; final adjustment to write pointer
     clc
-    adc LLENGTH
-    sta LLOAD
-    bcc rf_zerolen
+    adc  LLENGTH
+    sta  LLOAD
+    bcc  @zerolen
 
-    inc LLOAD+1
+    inc  LLOAD+1
 
-rf_zerolen
-    stx LLENGTH             ; zero out the length
+@zerolen:
+    stx  LLENGTH             ; zero out the length
 
-rf_alldone
+@alldone:
     rts
 
 
 
 
 
-rfi_adapter
+read_file_adapter:
     ; enter with a = bytes to read (0=256)
 
     pha
 
-    lda LLOAD
-    sta RWPTR
-    lda LLOAD+1
-    sta RWPTR+1
+    lda  LLOAD
+    sta  RWPTR
+    lda  LLOAD+1
+    sta  RWPTR+1
 
     pla
 
@@ -134,22 +131,22 @@ rfi_adapter
 ; a = number of bytes to read (0 = 256)
 ; (RWPTR) points to target
 ;
-read_block
+read_block:
     tax
 
     SLOWCMD $b404          ; ask PIC for (A) bytes of data (0=256)
-    jsr expect63
+    jsr  expect63
 
     PREPGETFRB406           ; tell pic to release the data we just read
 
-    ldy #0
+    ldy  #0
 
-rdt_loop
-    lda $b406               ; then read it
-    sta (RWPTR),y
+@loop:
+    lda  $b406               ; then read it
+    sta  (RWPTR),y
     iny
     dex
-    bne rdt_loop
+    bne  @loop
 
     rts
 
@@ -164,10 +161,10 @@ rdt_loop
 ;
 ; file needs to be open at this point
 ;
-write_info
+write_info:
    SETRWPTR NAME
-    lda #22
-    jmp write_block
+    lda  #22
+    jmp  write_block
 
 
 
@@ -178,38 +175,38 @@ write_info
 ; SSTART = address to write from
 ; SEND   = final address + 1
 ;
-wfi_fullpageloop
-    lda #0                  ; 1 page
-    jsr wfi_adapter
+write_file_fullpageloop:
+    lda  #0                  ; 1 page
+    jsr  write_file_adapter
+   
+    inc  SSTART+1
 
-    inc SSTART+1
+write_file:
+    lda  SSTART+1
+    cmp  SEND+1
+    bne  write_file_fullpageloop
 
-write_file
-    lda SSTART+1
-    cmp SEND+1
-    bne wfi_fullpageloop
+    lda  SEND                ; any stragglers to write?
+    cmp  SSTART
+    beq  @closefile
 
-    lda SEND                ; any stragglers to write?
-    cmp SSTART
-    beq wfi_closefile
+    sec                      ; calc remaining bytes
+    sbc  SSTART
+    jsr  write_file_adapter
 
-    sec                     ; calc remaining bytes
-    sbc SSTART
-    jsr wfi_adapter
-
-wfi_closefile
-    lda #0                  ; close the file
+@closefile:
+    lda  #0                  ; close the file
     SLOWCMD $b402
-    jmp expect63
+    jmp  expect63
 
 
 ; adapter - falls through to write_block
 ;
-wfi_adapter
-    ldy SSTART
-    sty RWPTR
-    ldy SSTART+1
-    sty RWPTR+1
+write_file_adapter:
+    ldy  SSTART
+    sty  RWPTR
+    ldy  SSTART+1
+    sty  RWPTR+1
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -218,21 +215,21 @@ wfi_adapter
 ; a = block length (0=256)
 ; (RWPTR) = source
 ;
-write_block
+write_block:
     tax                     ; save away the block size
     pha
 
     PREPPUTTOB407           ; take it
 
-    ldy #0
+    ldy  #0
 
-wbl_loop
-    lda (RWPTR),y           ; upload data
-    sta $b407
+@loop:
+    lda  (RWPTR),y           ; upload data
+    sta  $b407
     iny
     dex
-    bne wbl_loop
+    bne @loop
 
     pla                     ; write block command
     SLOWCMD $b405
-    jmp expect63
+    jmp  expect63
