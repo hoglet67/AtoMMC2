@@ -13,9 +13,6 @@ STARCWD:
 @setcwd:
    jsr   read_filename        ; copy filename into $140
 
-set_cwd:
-   jsr   $f844                ; set $c9\a = $140, set x = $c9
-
    jsr   COSPOST              ; Do COS interpreter post test
    ldx   #$c9                 ; File data starts at #C9
 

@@ -6,7 +6,6 @@
 ;
 STARSAVE:
    jsr  read_filename       ; copy filename into $140
-   jsr  $f844               ; set $c9\a = $140, set x = $c9
    jmp  $fabe               ; scan parameters and jmp through SAVVEC
 
 
@@ -70,11 +69,16 @@ ossavecode:
    sbc   SSTART
    sta   $154
 
-   ldx   #$ff          ; zero out any data after the name at $140
+   ; copy name to $140, zeroing any data after.
+   
+   ldx   #$ff
+   ldy 	 #$ff
 
 @mungename:
    inx
-   lda   NAME,x
+   iny
+   lda   ($c9),y
+   sta   NAME,x
    cmp   #$0d
    bne   @mungename
 
@@ -89,8 +93,6 @@ ossavecode:
    jsr   write_info         ; write the ATM header
 
    jsr   write_file         ; save the main body of data
-
-   CLOSE_FILE
 
    bit   MONFLAG             ; 0 = mon, ff = nomon
    bmi   @noprint

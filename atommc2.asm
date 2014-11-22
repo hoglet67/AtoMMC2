@@ -1,4 +1,3 @@
-
 ;
 ; todo - 
 ;
@@ -156,8 +155,8 @@ AtoMMC2:
 .IFNDEF EOOO
    ; - however we got an interrupt so we need to clear it
    ;
-  ; lda   #30               ; as we've had an interrupt we want to wait longer
-  ; sta   CRC               ; for the interface to respond
+   lda   #30               ; as we've had an interrupt we want to wait longer
+   sta   CRC               ; for the interface to respond
    jsr   irqgetcardtype
    pla
    rti
@@ -176,11 +175,11 @@ AtoMMC2:
 
    ; read card type
    ;
-  ; lda   #7                   ; timeout value, ret when crc == -1
-  ; sta   CRC
+   lda   #4                   ; timeout value, ret when crc == -1
+   sta   CRC
    jsr   irqgetcardtype
-  ; bit   CRC
-  ; bmi   @unpatched
+   bit   CRC
+   bmi   @unpatched
 
    tay
 
@@ -328,17 +327,17 @@ installhooks:
 
 
 
-;igct_delay:
-;   ldx   0
-;   ldy   0
-;igct_inner:
-;   dey
-;   bne   igct_inner
-;   dex
-;   bne   igct_inner
-;
-;   dec   CRC
-;   bmi   igct_quit
+igct_delay:
+   ldx   0
+   ldy   0
+igct_inner:
+   dey
+   bne   igct_inner
+   dex
+   bne   igct_inner
+
+   dec   CRC
+   bmi   igct_quit
 
 irqgetcardtype:
    ; await the 0xaa,0x55,0xaa... sequence which shows that the interface
@@ -349,14 +348,16 @@ irqgetcardtype:
    jsr   interwritedelay
    lda   $b40f
    cmp   #$aa
-   bne   irqgetcardtype
-
+;   bne   irqgetcardtype
+   bne   igct_delay
+   
    lda   #$fe
    sta   $b40f
    jsr   interwritedelay
    lda   $b40f
    cmp   #$55
-   bne   irqgetcardtype
+;   bne   irqgetcardtype
+   bne   igct_delay
 
    ; send read card type command - this also de-asserts the interrupt
 
@@ -642,7 +643,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.2 "
+   .byte "ATOMMC2 V2.7 "
 .IFNDEF EOOO
    .byte "A"
 .ELSE

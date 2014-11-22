@@ -277,7 +277,7 @@ read_filename:
    cpx   #0
    beq   @filename6
 
-   rts
+   jmp   $f844		; set the pointer at $c9, set x=$c9
 
 @filename5:
    iny

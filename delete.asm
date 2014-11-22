@@ -6,6 +6,7 @@
 ;
 STARDELETE:
    jsr  read_filename
+
    OPEN_READ
 
    jsr   confirm

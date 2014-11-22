@@ -19,20 +19,25 @@ open_file:
 send_name:
    PREPPUTTOB407
 
-   ldx  #0
+   tya
+   pha
+
+   ldy  #0
    beq  @pumpname
 
 @nextchar:
    sta  $b407
-   inx
+   iny
 
 @pumpname:
-   lda  NAME,x              ; write filename to filename buffer
+   lda  ($c9),y             ; write filename to filename buffer
    cmp  #$0d
    bne  @nextchar
 
    lda  #0                  ; terminate the string
    sta  $b407
+   pla
+   tay
    jmp  interwritedelay
 
 
@@ -204,8 +209,7 @@ write_file:
     jsr  write_file_adapter
 
 @closefile:
-    lda  #0                  ; close the file
-    SLOWCMD $b402
+   CLOSE_FILE
     jmp  expect64orless
 
 

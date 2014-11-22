@@ -55,6 +55,7 @@ STARCAT:
 
 
 @continue:
+   jsr   $f844
    jsr   send_name
 
    lda   #0                      ;  open directory
