@@ -103,8 +103,8 @@ shut_one:
 shut_file:
 	jsr mul32handle			; Command = 32*(file handle AND 3)
 	adc #CMD_FILE_CLOSE		; Select CMD_FILE_CLOSE command file 1,2 or 3
-	jmp set_acmd_reg		; Send command + wait
-
+	SLOWCMD 			; Send command + wait
+	rts
 ;----------------------------------------------------------------
 ; OSBPUT vector $216
 ;
@@ -126,18 +126,18 @@ osbputcode:
 	tya				; File handle in A
 	beq bput_zero_device		; Check for screen output
 
-	lda #$21			; CMD_READ_WRITE
-	jsr set_acmd_reg		; Send command + wait
+	jsr prepare_write_data		; CMD_READ_WRITE
 
 	pla
-	writeportFAST AWRITE_DATA_REG	; Save databyte
+	jsr set_data_reg		; Save databyte
 
 	lda #1				; Set nr of bytes to send
-	jsr set_alatch_reg		; Wait
+	jsr set_latch_reg		; Wait
 
 	jsr mul4handle			; Command=$21+4*file handle
 	adc #CMD_WRITE_BYTES
-	jmp set_acmd_reg		; Send command + wait
+	SLOWCMD				; Send command + wait
+	rts
 
 bput_zero_device:
 	pla				; Screen output
@@ -168,13 +168,11 @@ osbgetcode:
 	beq bget_zero_device		; If file handle zero, output to screen
 
 	lda #1				; Set nr of bytes to send
-	jsr set_alatch_reg		; Wait
+	jsr set_latch_reg		; Wait
 
 	jsr mul4handle			; Command=$22+4*file handle
 	adc #CMD_READ_BYTES		; CMD_READ_BYTES
-	jsr set_acmd_reg		; Send command + wait
-
-	lda ACMD_REG			; Check if EOF reached
+	SLOWCMD				; Send command + wait
 	cmp #STATUS_EOF
 	bne read_byte
 
@@ -184,9 +182,7 @@ osbgetcode:
 
 read_byte:
 	lda #CMD_INIT_READ		; CMB_INIT_READ
-	jsr set_acmd_reg		; Send command + wait
-	
-	readportFAST AREAD_DATA_REG	; Get databyte
+	SLOWCMD				; Send command + wait + get databyte
 	clc				; Return carry clear
 	rts
 
@@ -213,47 +209,35 @@ bget_zero_device:
 
 osrdarcode:
 	pha				; Save A
-	bne read_ext			; Jump if read EXT
 
-	jsr rdar_command		; Send CMD_GET_INFO + CMD_INIT_READ
-	jsr rdar_read_dummy		; Skip LOF
-	jsr rdar_read_dummy		; Skip sector
-	jmp rdar_cont			; Read PTR
-
-read_ext:
-	jsr rdar_command		; Send CMD_GET_INFO + CMD_INIT_READ
-	jmp rdar_cont			; Read EXT
-
-rdar_command:
 	jsr mul32handle			; Command=$15+32*file handle
 	adc #CMD_FILE_GETINFO
-	jsr set_acmd_reg		; Send command + wait
+	sta ACMD_REG			; Send command + wait
 
-	lda #CMD_INIT_READ
-	jmp set_acmd_reg		; Send command + wait
+	jsr prepare_read_data		; CMD_INIT_READ
 
-rdar_cont:
-	lda AREAD_DATA_REG		; byte 0
-	sta $00,x
-	lda AREAD_DATA_REG		; byte 1
-	sta $01,x
-	lda AREAD_DATA_REG		; byte 2
-	sta $02,x
-	lda AREAD_DATA_REG		; byte 3
-	jsr interwritedelay
+	jsr rdar_cont			; Skip LOF
 
-	pla 
+	pla
+	bne rdar_end
+
+	jsr rdar_cont			; Skip sector
+	jsr rdar_cont			; Read PTR
+rdar_end:
 	rts
 
-rdar_read_dummy:
+rdar_cont:
+	jsr interwritedelay
 	lda AREAD_DATA_REG		; byte 0
+	sta $00,x
 	jsr interwritedelay
 	lda AREAD_DATA_REG		; byte 1
+	sta $01,x
 	jsr interwritedelay
 	lda AREAD_DATA_REG		; byte 2
+	sta $02,x
 	jsr interwritedelay
 	lda AREAD_DATA_REG		; byte 3
-	jsr interwritedelay
 	rts
 
 ;----------------------------------------------------------------
@@ -273,22 +257,21 @@ osstarcode:
 	tya				; File handle in A
 	beq ptr_zero_device		; Error if no file open
 
-	lda #CMD_INIT_WRITE		; CMD_INIT_WRITE
-	sta ACMD_REG			; Send command
-	jsr expect64orless		; Check for error
+	jsr prepare_write_data		; CMD_INIT_WRITE
 
 	lda $00,x
-	writeportFAST AWRITE_DATA_REG	; Save databyte
+	jsr set_data_reg		; Save databyte
 	lda $01,x
-	writeportFAST AWRITE_DATA_REG	; Save databyte
+	jsr set_data_reg		; Save databyte
 	lda $02,x
-	writeportFAST AWRITE_DATA_REG	; Save databyte
+	jsr set_data_reg		; Save databyte
 	lda #0
-	writeportFAST AWRITE_DATA_REG	; Save databyte
+	jsr set_data_reg		; Save databyte
 	
 	jsr mul32handle
 	adc #CMD_SEEK			; Command=$16+32*file handle
-	jmp set_acmd_reg		; Send command + wait
+	SLOWCMD				; Send command + wait
+	rts
 
 ptr_zero_device:
 	brk
@@ -319,17 +302,17 @@ mul4handle:
 	jmp mul4
 
 ;----------------------------------------------------------------
-; Send command + wait
-;----------------------------------------------------------------
-
-set_acmd_reg:				
-	writeportFAST ACMD_REG
-	jmp interwritedelay
-
-;----------------------------------------------------------------
 ; Send data + wait
 ;----------------------------------------------------------------
 
-set_alatch_reg:				
+set_latch_reg:				
 	writeportFAST ALATCH_REG
+	jmp interwritedelay
+
+;----------------------------------------------------------------
+; Write data + wait
+;----------------------------------------------------------------
+
+set_data_reg:				
+	writeportFAST AWRITE_DATA_REG
 	jmp interwritedelay
