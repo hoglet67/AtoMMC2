@@ -129,7 +129,7 @@ osbputcode:
 	jsr prepare_write_data		; CMD_READ_WRITE
 
 	pla
-	jsr set_data_reg		; Save databyte
+	jsr write_data_reg		; Save databyte
 
 	lda #1				; Set nr of bytes to send
 	jsr set_latch_reg		; Wait
@@ -183,6 +183,7 @@ osbgetcode:
 read_byte:
 	lda #CMD_INIT_READ		; CMB_INIT_READ
 	SLOWCMD				; Send command + wait + get databyte
+
 	clc				; Return carry clear
 	rts
 
@@ -212,32 +213,28 @@ osrdarcode:
 
 	jsr mul32handle			; Command=$15+32*file handle
 	adc #CMD_FILE_GETINFO
-	sta ACMD_REG			; Send command + wait
+	SLOWCMD				; Send command + wait
 
 	jsr prepare_read_data		; CMD_INIT_READ
 
-	jsr rdar_cont			; Skip LOF
+	jsr rdar_cont			; Read LOF
 
 	pla
-	bne rdar_end
+	bne rdar_end			; If EXT then end
 
-	jsr rdar_cont			; Skip sector
+	jsr rdar_cont			; Read sector
 	jsr rdar_cont			; Read PTR
 rdar_end:
 	rts
 
 rdar_cont:
-	jsr interwritedelay
-	lda AREAD_DATA_REG		; byte 0
+	jsr read_data_reg		; Read data byte
 	sta $00,x
-	jsr interwritedelay
-	lda AREAD_DATA_REG		; byte 1
+	jsr read_data_reg		; Read data byte
 	sta $01,x
-	jsr interwritedelay
-	lda AREAD_DATA_REG		; byte 2
+	jsr read_data_reg		; Read data byte
 	sta $02,x
-	jsr interwritedelay
-	lda AREAD_DATA_REG		; byte 3
+	jsr read_data_reg		; Read data byte
 	rts
 
 ;----------------------------------------------------------------
@@ -260,13 +257,13 @@ osstarcode:
 	jsr prepare_write_data		; CMD_INIT_WRITE
 
 	lda $00,x
-	jsr set_data_reg		; Save databyte
+	jsr write_data_reg		; Write databyte
 	lda $01,x
-	jsr set_data_reg		; Save databyte
+	jsr write_data_reg		; Write databyte
 	lda $02,x
-	jsr set_data_reg		; Save databyte
+	jsr write_data_reg		; Write databyte
 	lda #0
-	jsr set_data_reg		; Save databyte
+	jsr write_data_reg		; Write databyte
 	
 	jsr mul32handle
 	adc #CMD_SEEK			; Command=$16+32*file handle
@@ -313,6 +310,15 @@ set_latch_reg:
 ; Write data + wait
 ;----------------------------------------------------------------
 
-set_data_reg:				
+write_data_reg:				
 	writeportFAST AWRITE_DATA_REG
 	jmp interwritedelay
+
+;----------------------------------------------------------------
+; Wait + Read data
+;----------------------------------------------------------------
+
+read_data_reg:				
+	jsr interwritedelay
+	lda AREAD_DATA_REG
+	rts

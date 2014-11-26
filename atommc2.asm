@@ -224,7 +224,7 @@ bittoindex:
    ora   #8             ; bit 3 -- 'no card available' - to ensure we stop 
    sta   ZPTW
 
-   lda   #-4            ; spot the bit
+   lda   #$fc           ; spot the bit
    clc
 @add:
    adc   #4
