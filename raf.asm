@@ -137,7 +137,7 @@ osbputcode:
 	jsr mul4handle			; Command=$21+4*file handle
 	adc #CMD_WRITE_BYTES
 	SLOWCMD				; Send command + wait
-	rts
+	jmp expect64orless		; Check for error
 
 bput_zero_device:
 	pla				; Screen output
@@ -173,9 +173,12 @@ osbgetcode:
 	jsr mul4handle			; Command=$22+4*file handle
 	adc #CMD_READ_BYTES		; CMD_READ_BYTES
 	SLOWCMD				; Send command + wait
-	cmp #STATUS_EOF
-	bne read_byte
+	cmp #STATUS_EOF			; Check for EOF flag
+	beq set_eof_flag
+	jsr expect64orless		; Check for errors
+	jmp read_byte			; No errors, read byte
 
+set_eof_flag:
 	lda #$ff			; EOF reached
 	sec				; Return carry set
 	rts
