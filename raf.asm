@@ -184,8 +184,8 @@ set_eof_flag:
 	rts
 
 read_byte:
-	lda #CMD_INIT_READ		; CMB_INIT_READ
-	SLOWCMD				; Send command + wait + get databyte
+	jsr prepare_read_data		; CMD_INIT_READ
+	jsr read_data_reg		; Read byte
 
 	clc				; Return carry clear
 	rts
