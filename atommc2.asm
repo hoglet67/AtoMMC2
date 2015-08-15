@@ -604,7 +604,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.97"
+   .byte "ATOMMC2 V2.98"
 .IFNDEF EOOO
    .byte "A"
 .ELSE

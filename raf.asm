@@ -64,10 +64,10 @@ raf1:
 	bcs open_ok			; Existing file opened
 open_nok:
 	plp				; Get status
-	bcc open_out			; If FOUT, return 0
-	jmp expect64orless
-open_out:
-	lda #0				; If FIN, return ERROR
+	bcs open_in			; C=1 is FIN; C=0 is FOUT
+	jmp expect64orless		; If FOUT, return ERROR
+open_in:
+	lda #0				; If FIN, return 0
 	rts
 
 open_ok:
