@@ -25,14 +25,6 @@
 .endif
 .endmacro
 
-.macro REPERROR addr
-   lda #<addr
-   sta $d5
-   lda #>addr
-   sta $d6
-   jmp reportFailure
-.endmacro
-
 ; Note SLOWCMD used to take a port number, but since ALL calls used APORT_CMD
 ; it is more code size efficient to convert it to a subroutine call, that always
 ; uses ACMD_PORT.

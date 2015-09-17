@@ -183,12 +183,24 @@ reportDiskFailure:
 @findstring:
    iny                     ; do this here because we need the z flag below
    lda   diskerrortab,y
-   cmp   #$0d
    bne   @findstring       ; zip along the string till we find a zero
 
    dex                     ; when this bottoms we've found our error
    bne   @findstring
 
+
+   lda   TubeFlag
+   cmp   #TubeEna
+   beq   @tubeError
+
+@printstring:
+   iny
+   lda   diskerrortab,y
+   jsr   OSWRCH
+   bne   @printstring
+   brk
+
+@tubeError:
    iny                     ; store index for basic BRK-alike hander
    tya
    clc
@@ -197,28 +209,30 @@ reportDiskFailure:
    lda   #>diskerrortab
    adc   #0
    sta   $d6
+   jmp   L0409
 
-   ; fall into ...
-
-
-;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
-;
-; Error printer
-;
-; Enter with $d5,6 -> Error string.
-;
-reportFailure:
-   lda   #<errorhandler
-   sta   $5
-   lda   #>errorhandler
-   sta   $6
-   jmp   $c2f2
-
-
-
-
-
-
+diskerrortab:
+   .byte $00
+   .byte "DISK FAULT",$00
+   .byte "INTERNAL ERROR",$00
+   .byte "NOT READY",$00
+   .byte "NOT FOUND",$00
+   .byte "NO PATH",$00
+   .byte "INVALID NAME",$00
+   .byte "ACCESS DENIED",$00
+   .byte "EXISTS",$00
+   .byte "INVALID OBJECT",$00
+   .byte "WRITE PROTECTED",$00
+   .byte "INVALID DRIVE",$00
+   .byte "NOT ENABLED",$00
+   .byte "NO FILESYSTEM",$00
+   .byte $00                     ; mkfs error
+   .byte "TIMEOUT",$00
+   .byte "EEPROM ERROR",$00
+   .byte "FAILED",$00
+   .byte "TOO MANY",$00
+   .byte "SILLY",$0d
+	
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Display the filename at $140

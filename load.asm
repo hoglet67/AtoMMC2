@@ -30,6 +30,12 @@ osloadcode:
 	jsr	open_file_read
     jsr  read_info
 
+    ; @@TUBE@@ 
+    ; Test if the tube is enabled, then claim and initiate transfer
+    ldx #LLOAD               ; block containing transfer address
+    ldy #1                   ; transfer type
+    jsr tube_claim_wrapper
+
     bit  MONFLAG             ; 0 = mon, ff = nomon
     bmi  @noprint
 
@@ -37,10 +43,11 @@ osloadcode:
     jsr  OSCRLF
 
 @noprint:
-    jmp read_file
+    jsr read_file
 
-
-
+    ; @@TUBE@@ 
+    ; Test if the tube is enabled, then release
+    jmp tube_release_wrapper
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~

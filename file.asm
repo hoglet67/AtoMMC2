@@ -135,7 +135,8 @@ read_file_adapter:
 
     pla
 
-    ; falls through to
+    ; @@TUBE@@
+    JMP tube_read_block
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -145,28 +146,27 @@ read_file_adapter:
 ; a = number of bytes to read (0 = 256)
 ; (RWPTR) points to target
 ;
+; @@TUBE@@ Refactored to allow code sharing with tube_read_block
 read_block:
-    tax
-
-	; ask PIC for (A) bytes of data (0=256)
-	writeportFAST	ALATCH_REG	; set ammount to read
-	jsr				interwritedelay
-	SLOWCMDI 		CMD_READ_BYTES		; set command
-    
-    jsr  expect64orless
-
-    jsr	prepare_read_data				; tell pic to release the data we just read
-
+    jsr read_block_shared
     ldy  #0
-
 @loop:
     readportFAST	AREAD_DATA_REG	; then read it
     sta  (RWPTR),y
     iny
     dex
     bne  @loop
-
     rts
+
+read_block_shared:
+    tax
+	; ask PIC for (A) bytes of data (0=256)
+	writeportFAST	ALATCH_REG	; set ammount to read
+	jsr				interwritedelay
+	SLOWCMDI 		CMD_READ_BYTES		; set command
+    jsr  expect64orless
+    jmp	prepare_read_data				; tell pic to release the data we just read
+
 
 
 
@@ -225,6 +225,9 @@ write_file_adapter:
     ldy  SSTART+1
     sty  RWPTR+1
 
+    ; @@TUBE@@
+    JMP tube_write_block
+	
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; write a block of data
@@ -232,6 +235,7 @@ write_file_adapter:
 ; a = block length (0=256)
 ; (RWPTR) = source
 ;
+; @@TUBE@@ Refactored to allow code sharing with tube_write_block
 write_block:
     tax                     ; save away the block size
     pha
@@ -247,6 +251,7 @@ write_block:
     dex
     bne 			@loop
 
+write_block_shared:	
     pla                     	; write block command
 	writeportFAST	ALATCH_REG	; ammount to write
 	jsr				interwritedelay

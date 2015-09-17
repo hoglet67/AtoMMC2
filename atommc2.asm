@@ -5,88 +5,6 @@
 
 .include "atmmc2def.asm"
 
-; OS overrides
-;
-TOP         =$0d
-PAGE        =$12
-ARITHWK     =$23
-
-; these need to be in ZP
-;
-RWPTR       =$ac         ; W - data target vector
-ZPTW        =$ae         ; [3] - general use temp vector, used by vechexs, RS, WS
-
-LFNPTR      =$c9         ; W -pointer to filename (usually $140)
-LLOAD       =$cb         ; W - load address
-LEXEC       =$cd         ; W - execution address
-LLENGTH     =$cf         ; W - byte length
-
-SFNPTR      =$c9         ; W -pointer to filename (usually $140)
-SLOAD       =$cb         ; W - reload address
-SEXEC       =$cd         ; W - execute
-SSTART      =$cf         ; W - data start
-SEND        =$d1         ; W - data end + 1
-
-CRC         =$c9         ; 3 bytes in ZP - should be ok as this addr only used for load/save??
-
-RDCCNT      =$c9         ; B - bytes in pool - ie ready to be read from file
-RDCLEN      =$ca         ; W - length of file supplying characters
-
-tmp_ptr3    =$D5
-tmp_ptr5    =$D6
-tmp_ptr6    =$D7
-
-MONFLAG     =$ea         ; 0 = messages on, ff = off
-
-NAME       =$140         ; sits astride the BASIC input buffer and string processing area.
-
-IRQVEC     =$204         ; we patch these (maybe more ;l)
-COMVEC     =$206
-RDCVEC     =$20a
-LODVEC     =$20c
-SAVVEC     =$20e
-
-; DOS scratch RAM 3CA-3FC. As the AtoMMC interface effectively precludes the use of DOS..
-;
-FKIDX      =$3ca         ; B - fake key index
-RWLEN      =$3cb         ; W - count of bytes to write
-FILTER     =$3cd         ; B - dir walk filter 
-
-
-; I/O register base
-;
-
-.ifdef ALTADDR
-AREG_BASE			= $b408
-.else
-AREG_BASE			= $b400	
-.endif
-
-ACMD_REG			= AREG_BASE+CMD_REG
-ALATCH_REG          = AREG_BASE+LATCH_REG             
-AREAD_DATA_REG      = AREG_BASE+READ_DATA_REG             
-AWRITE_DATA_REG     = AREG_BASE+WRITE_DATA_REG             
-ASTATUS_REG			= AREG_BASE+STATUS_REG	
-
-; FN       ADDR
-;
-OSWRCH     =$fff4
-OSRDCH     =$ffe3
-OSCRLF     =$ffed
-COSSYN     =$fa7d
-COSPOST    =$fa76
-RDADDR     =$fa65
-CHKNAME    =$f84f
-SKIPSPC    =$f876
-RDOPTAD    =$f893
-BADNAME    =$f86c
-WSXFER2    =$f85C
-COPYNAME   =$f818
-HEXOUT     =$f802
-HEXOUTS    =$f7fa
-STROUT     =$f7d1
-
-
 .include "macros.asm"
 
 .SEGMENT "CODE"
@@ -133,6 +51,7 @@ AtoMMC2:
    ldx   #0
 
    stx   FKIDX            ; fake key index for OSRDCH patch, just piggybacking
+   stx   TubeFlag         ; @@TUBE@@ disable tube by default
 
    lda   #43              ;'+'
    sta   $800b
@@ -446,7 +365,7 @@ comint6:
 .include "crc.asm"
 .include "delete.asm"
 .include "exec.asm"
-.include "fatinfo.asm"
+;.include "fatinfo.asm"
 .include "help.asm"
 .include "info.asm"
 .include "load.asm"
@@ -457,7 +376,7 @@ comint6:
 .include "util.asm"
 .include "chain.asm"
 .include "raf.asm"
-
+.include "tube.asm"
 
 
 
@@ -538,8 +457,8 @@ com_tab:
    .byte "SAVE"
    FNADDR STARSAVE
 
-   .byte "FATINFO"
-   FNADDR STARFATINFO
+;   .byte "FATINFO"
+;   FNADDR STARFATINFO
 
    .byte "CRC"
    FNADDR STARCRC
@@ -548,47 +467,6 @@ com_tab:
    FNADDR STARCHAIN
 
    FNADDR STARARBITRARY
-
-
-SQ=34   ; "
-
-
-diskerrortab:
-   .byte $0d
-   .byte "DISK FAULT",$0d
-   .byte "INTERNAL ERROR",$0d
-   .byte "NOT READY",$0d
-   .byte "NOT FOUND",$0d
-   .byte "NO PATH",$0d
-   .byte "INVALID NAME",$0d
-   .byte "ACCESS DENIED",$0d
-   .byte "EXISTS",$0d
-   .byte "INVALID OBJECT",$0d
-   .byte "WRITE PROTECTED",$0d
-   .byte "INVALID DRIVE",$0d
-   .byte "NOT ENABLED",$0d
-   .byte "NO FILESYSTEM",$0d
-   .byte $0d                     ; mkfs error
-   .byte "TIMEOUT",$0d
-   .byte "EEPROM ERROR",$0d
-   .byte "FAILED",$0d
-   .byte "TOO MANY",$0d
-   .byte "SILLY",$0d
-
-errorhandler:
-   .byte "@=8;P.$6$7'"
-   .byte SQ
-   .byte "ERROR - "
-   .byte SQ
-   .byte "$!#D5&#FFFF;"
-   .byte "IF?1|?2P."
-   .byte SQ
-   .byte " - LINE "
-   .byte SQ
-   .byte "!1& #FFFF"
-   .byte $0d,0,0
-   .byte "P.';E."
-   .byte $0d
 
 
 .IFDEF EOOO
@@ -604,14 +482,14 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.98"
+   .byte "ATOMMC2 V2.99"
 .IFNDEF EOOO
    .byte "A"
 .ELSE
    .byte "E"
 .ENDIF
    .byte $0d,$0a
-   .byte " (C) 2008-2013  "
+   .byte " (C) 2008-2015  "
    .byte "CHARLIE ROBSON. "
 
    .end

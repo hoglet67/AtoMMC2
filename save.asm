@@ -54,6 +54,13 @@ ossavecode:
    jsr   expect64orless
 
 @continue:
+
+   ; @@TUBE@@ 
+   ; Test if the tube is enabled, then claim and initiate transfer
+   ldx #SLOAD            ; block containing transfer address
+   ldy #0                ; transfer type
+   jsr tube_claim_wrapper
+	
    lda   SLOAD           ; tag the file info onto the end of the filename data
    sta   $150
    lda   SLOAD+1
@@ -89,6 +96,10 @@ ossavecode:
    jsr   write_info         ; write the ATM header
 
    jsr   write_file         ; save the main body of data
+
+   ; @@TUBE@@ 
+   ; Test if the tube is enabled, then release
+   jsr tube_release_wrapper
 
 ; Don't need to call CLOSE_FILE here as write_file calls it.
 ;   CLOSE_FILE
