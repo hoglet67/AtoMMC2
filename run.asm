@@ -51,8 +51,16 @@ checkbasic:
    jmp   $c2f2
 
 @runit:
+
+   ; @@TUBE@@ 
+   ; Issue a transfer type 4, which is set the execution address
+   ldx #LEXEC               ; block containing transfer address
+   ldy #4                   ; transfer type
+   jsr tube_claim_wrapper
+   ; If the tube is enabled, it will eventually jump to TubeIdleStartup and not return
+   ; If the tube is disabled, it will fall through to here
    jmp   (LEXEC)
 
-
+	
 @runcmd:
    .byte "RUN",$0d
