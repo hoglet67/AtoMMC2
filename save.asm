@@ -25,7 +25,7 @@ STARSAVE:
 ;
 ossavecode:
    jsr  $f84f               ; copy data block at $00,x to COS workspace at $c9
-
+   jsr	copy_name
    jsr	open_file_write     ; returns with any error in A
 
    and   #$3f

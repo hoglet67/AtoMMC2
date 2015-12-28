@@ -446,3 +446,17 @@ tab_space10:
 tab_space16:
    ldx   #16
    jmp   tab_space
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Copy filename from ($c9) to $140
+;
+copy_name:
+	ldy #0
+copy_name_loop:
+	lda ($C9),y
+	sta $140,y
+	iny
+	cmp #$0d
+	bne copy_name_loop
+	rts

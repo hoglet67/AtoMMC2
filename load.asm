@@ -26,8 +26,8 @@ osloadcode:
     ; transfer control block to $c9 (LFNPTR) onward and check name
     ;
     jsr  CHKNAME
-
-	jsr	open_file_read
+    jsr	copy_name
+    jsr	open_file_read
     jsr  read_info
 
     bit  MONFLAG             ; 0 = mon, ff = nomon
