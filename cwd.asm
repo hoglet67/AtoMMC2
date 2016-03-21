@@ -26,5 +26,3 @@ set_cwd:
 
    SLOWCMDI CMD_DIR_CWD         ; set CWD
    jmp   expect64orless
-
-   rts

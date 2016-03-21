@@ -54,9 +54,6 @@ tube_release_wrapper:
    lda   #TUBE_CLIENT_ID - $40
    jmp   L0406
 
-tube_disabled:
-   rts  
-
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Read a block of data from file to the Tube
@@ -76,6 +73,8 @@ tube_read_block:
    sta    TUBE_R3               ; write to the tube data transfer register
    dex  
    bne    @loop
+
+tube_disabled:
    rts  
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~

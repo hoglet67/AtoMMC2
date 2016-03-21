@@ -18,6 +18,10 @@
    jsr   SLOWCMD_SUB
 .endmacro
 
+.macro SLOWCMD_THEN_RTS
+   jmp   SLOWCMD_SUB
+.endmacro
+                
 .macro SLOWCMDI command
    lda   #command
    SLOWCMD

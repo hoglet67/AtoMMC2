@@ -1,0 +1,16 @@
+Starting point, end is 0B02
+
+After RTS optimizations, 0AF6
+
+Possible patten to factor out:
+   SLOWCMDI xxxx
+   jsr   expect64orless
+
+Possible patten to factor out:
+   pha
+   jsr   OSCRLF
+   pla
+   cmp   #'Y'
+   beq   @preparetocont
+   rts
+

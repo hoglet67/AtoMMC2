@@ -191,8 +191,7 @@ getcb:
 putcb:
    jsr   write_latch_reg
    lda   #CMD_SET_CFG_BYTE      ; write latched val as config byte. irqs are now off
-   jsr   write_cmd_reg
-   rts
+   jmp   write_cmd_reg
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -464,11 +463,13 @@ tab_space16:
 ; Copy filename from ($c9) to $140
 ;
 copy_name:
-   ldy #0
+   ldy   #0
+
 copy_name_loop:
-   lda ($C9),y
-   sta $140,y
+   lda   ($C9),y
+   sta   $140,y
    iny
-   cmp #$0d
-   bne copy_name_loop
+   cmp   #$0d
+   bne   copy_name_loop
+
    rts

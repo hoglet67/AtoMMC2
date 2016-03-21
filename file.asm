@@ -18,8 +18,7 @@ open_file:
    pha
    jsr   send_name
    pla
-   SLOWCMD
-   rts
+   SLOWCMD_THEN_RTS
 
 send_name:
    jsr   prepare_write_data
@@ -37,8 +36,7 @@ send_name:
    bne   @nextchar
 
    lda   #0                     ; terminate the string
-   jsr   write_data_reg
-   rts
+   jmp   write_data_reg
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~

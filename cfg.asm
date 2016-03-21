@@ -74,5 +74,4 @@ do_cfg_cmd:
    ldx   $ce                    ; Load function code
    inx                          ; change get code to put
    txa
-   jsr   write_cmd_reg
-   rts
+   jmp   write_cmd_reg

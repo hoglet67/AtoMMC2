@@ -14,12 +14,11 @@ star_delete:
    jsr   OSCRLF
    pla
    cmp   #'Y'
-   beq   @continue
+   bne   @return
 
-   rts
-
-@continue:
    jsr   delete_file
+
+@return:
    rts
 
 confirm:

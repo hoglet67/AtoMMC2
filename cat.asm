@@ -110,6 +110,4 @@ get_next_loop:
 
    jmp   OSCRLF
 
-@done:
-   rts
 

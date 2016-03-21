@@ -103,8 +103,8 @@ shut_one:
 shut_file:
    jsr   mul32handle            ; Command = 32*(file handle AND 3)
    adc   #CMD_FILE_CLOSE        ; Select CMD_FILE_CLOSE command file 1,2 or 3
-   SLOWCMD                      ; Send command + wait
-   rts
+   SLOWCMD_THEN_RTS             ; Send command + wait
+
 ;----------------------------------------------------------------
 ; OSBPUT vector $216
 ;
@@ -191,8 +191,7 @@ read_byte:
    rts
 
 bget_zero_device:
-   jsr   $ffe6                  ; Return input from keyboard
-   rts
+   jmp   $ffe6                  ; Return input from keyboard
 
 ;----------------------------------------------------------------
 ; OSRDAR vector $210
@@ -237,8 +236,7 @@ rdar_cont:
    sta   $01,x
    jsr   read_data_reg          ; Read data byte
    sta   $02,x
-   jsr   read_data_reg          ; Read data byte
-   rts
+   jmp   read_data_reg          ; Read data byte
 
 ;----------------------------------------------------------------
 ; OSSTAR vector $212
@@ -270,8 +268,7 @@ osstarcode:
 
    jsr   mul32handle
    adc   #CMD_SEEK              ; Command=$16+32*file handle
-   SLOWCMD                      ; Send command + wait
-   rts
+   SLOWCMD_THEN_RTS             ; Send command + wait
 
 ptr_zero_device:
    brk
