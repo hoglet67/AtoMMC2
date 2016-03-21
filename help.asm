@@ -9,28 +9,24 @@ star_help:
    ldy   #(version_long - version)
    jsr   print_version
 
-   jsr   OSCRLF
-
    jsr   STROUT
-   .byte "INTERFACE F/W VERSION "
+   .byte 10, 13, "INTERFACE F/W VERSION "
    nop
 
    FASTCMDI CMD_GET_FW_VER
    jsr   ndotn
-   jsr   OSCRLF
 
    jsr   STROUT
-   .byte "BOOTLOADER VERSION "
+   .byte 10, 13, "BOOTLOADER VERSION "
    nop
 
    FASTCMDI CMD_GET_BL_VER
    jsr   ndotn
-   jsr   OSCRLF
 
    ; read and display card type
    ;
    jsr   STROUT
-   .byte "CARD TYPE: "
+   .byte 10, 13, "CARD TYPE: "
    nop
    SLOWCMDI CMD_GET_CARD_TYPE
 
