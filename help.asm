@@ -6,14 +6,8 @@
 ;
 star_help:
 
-   ldx   #0
-
-@vers:
-   lda   version,x
-   jsr   OSWRCH
-   inx
-   cpx   #48
-   bne   @vers
+   ldy   #(version_long - version)
+   jsr   print_version
 
    jsr   OSCRLF
 

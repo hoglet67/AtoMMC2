@@ -146,15 +146,20 @@ bittoindex:
    tax
    rts
 
-installhooks2:
+print_version:
    ldx   #0
 
 @announce:
    lda   version,x
    jsr   OSWRCH
    inx
-   cpx   #16
+   dey
    bne   @announce
+   rts
+
+installhooks2:
+   ldy   #(version_short - version)
+   jsr   print_version
 
 .ifndef EOOO
    jsr   ifen                   ; interface enable interrupt, if at A000
@@ -451,7 +456,9 @@ version:
    .byte "E"
 .endif
    .byte $0d,$0a
+version_short:
    .byte " (C) 2008-2016  "
    .byte "CHARLIE ROBSON. "
-
+version_long:
+        
    .end

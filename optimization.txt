@@ -12,6 +12,8 @@ Factor out this from SAVE and DELETE, 0AE8
 
 Use OSECHO insread of OSRDCH/OSWRCH, 0AE5
 
+Factor out a common print version between Boot code and *HELP, 0AE2
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless
