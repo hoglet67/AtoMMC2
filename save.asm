@@ -35,17 +35,12 @@ ossavecode:
    jmp   expect64orless         ; other kind of error
 
 @askover:
-   jsr   overwrite
+   jsr   STROUT
+   .byte "OVERWRITE (Y):"
+   nop
 
-   pha
-   jsr   OSCRLF
-   pla
-   cmp   #'Y'
-   beq   @preparetocont
-
-   rts
-
-@preparetocont:
+   jsr   confirm_or_rts         ; pops an extra address off the stack if Y not presed
+        
    jsr   delete_file
 
    jsr   open_file_write
@@ -117,11 +112,3 @@ ossavecode:
 
 @noprint:
    jmp   OSCRLF
-
-overwrite:
-   jsr   STROUT
-   .byte "OVERWRITE (Y):"
-   nop
-
-   jsr   OSRDCH
-   jmp   OSWRCH

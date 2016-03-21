@@ -473,3 +473,24 @@ copy_name_loop:
    bne   copy_name_loop
 
    rts
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Wait for a key press, return back two levels if not Y
+;
+
+confirm_or_rts:
+   jsr   OSRDCH                 ; wait for a key press
+   jsr   OSWRCH                 ; echo it
+
+   pha                          ; save it
+   jsr   OSCRLF
+   pla                          ; restore it
+   cmp   #'Y'
+   beq   @confirm_yes           ; return to the caller
+
+   pla                          ; pop an extra level of stack 
+   pla                          ; which will cancel the operation
+
+@confirm_yes:
+   rts

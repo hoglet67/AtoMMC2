@@ -8,23 +8,11 @@ star_delete:
    jsr   read_filename
    jsr   open_file_read
 
-   jsr   confirm
-
-   pha
-   jsr   OSCRLF
-   pla
-   cmp   #'Y'
-   bne   @return
-
-   jsr   delete_file
-
-@return:
-   rts
-
-confirm:
    jsr   STROUT
    .byte "CONFIRM (Y):"
    nop
 
-   jsr   OSRDCH
-   jmp   OSWRCH
+   jsr   confirm_or_rts         ; pops an extra address off the stack if Y not presed
+
+   jmp   delete_file
+
