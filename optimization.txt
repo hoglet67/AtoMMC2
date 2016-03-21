@@ -14,6 +14,8 @@ Use OSECHO insread of OSRDCH/OSWRCH, 0AE5
 
 Factor out a common print version between Boot code and *HELP, 0AE2
 
+One more saved RTS, 0AE1
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless

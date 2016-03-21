@@ -206,10 +206,8 @@ irqgetcardtype2:
 
    ; send read card type command - this also de-asserts the interrupt
 
-   SLOWCMDI CMD_GET_CARD_TYPE
-
-igct_quit:
-   rts
+   LDA   #CMD_GET_CARD_TYPE
+   SLOWCMD_THEN_RTS
 
 ; patched os input function
 ;
