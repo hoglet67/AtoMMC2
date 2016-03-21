@@ -28,6 +28,8 @@ Remove OSCRLF from *HELP, 0ACF
 
 Move OSCRLF into print_fileinfo, 0ACA
 
+Minor RAF optimizations, 0AC6
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless

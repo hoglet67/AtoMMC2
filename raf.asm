@@ -54,7 +54,7 @@ name_copy:
 
 raf_open_write:                 ; Open file for writing
    lda   #CMD_FILE_OPEN_RANDOM_WRITE
-   jmp   raf1
+   bne   raf1
 
 raf_open_read:                  ; Open file for reading
    lda   #CMD_FILE_OPEN_RANDOM_READ
@@ -85,8 +85,8 @@ osshutcode:
    pha                          ; Save A
 
    tya                          ; Set handle in A
-   beq   shut_all               ; Jump if zero
-   jmp   shut_one               ; Shut one file
+
+   bne   shut_one               ; Shut one file
 
 shut_all:
    ldy   #$61
