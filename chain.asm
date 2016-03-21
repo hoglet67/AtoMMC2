@@ -7,16 +7,6 @@
 star_chain:
    jsr   star_load
 
-   jsr   @findprogramend
-   lda   $70
-   sta   $0d
-   sta   $23
-   lda   $71
-   sta   $0e
-   sta   $24
-   jmp   $ce86
-
-@findprogramend:
    lda   $12
    sta   $71
    ldy   #0
@@ -45,5 +35,12 @@ laef5:
    sta   $70
    bcc   laf06
    inc   $71
+
 laf06:
-   rts
+   lda   $70
+   sta   $0d
+   sta   $23
+   lda   $71
+   sta   $0e
+   sta   $24
+   jmp   $ce86

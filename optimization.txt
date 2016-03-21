@@ -20,6 +20,8 @@ Changed fakekeys to be zero terminated, 0ADE
 
 A couple of JMPs replaced by BNE, 0ADC
 
+CHAIN Optimization Phase 1, 0AD8
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless
