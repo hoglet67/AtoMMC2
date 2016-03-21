@@ -75,7 +75,7 @@ GetNextLoop:
 @printit:
    jsr   getasciizstringto140    ; a = 0 on exit
 
-   readportFAST   AREAD_DATA_REG			; $b406 ; get attribute byte
+   jsr   read_data_reg             ; get attribute byte
    and   #2                      ; hidden?
    bne   @pause
 

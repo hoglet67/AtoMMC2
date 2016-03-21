@@ -69,8 +69,7 @@ sinkchar:
 
 @refillpool:
    lda   			RDCCNT         		; recover count
-   writeportFAST	ALATCH_REG			; set ammount to read
-   jsr				interwritedelay
+   jsr            write_latch_reg        ; set ammount to read
 
    SLOWCMDI 		CMD_READ_BYTES		; set command	
    cmp   			#STATUS_COMPLETE
@@ -98,13 +97,13 @@ plentyleft:
    lda   #$fe
    sta   RDCVEC+1
 
-	readportFAST   AREAD_DATA_REG	; get char from PIC/AVR
+	jsr   read_data_reg   ; get char from PIC/AVR
    plp
    rts
 
 
 @finally:
-	readportFAST   AREAD_DATA_REG	; get char from PIC/AVR
+	jsr   read_data_reg   ; get char from PIC/AVR
 
    cmp   #$0a            ; lose LFs - god this is so ghetto i can't believe i've done it
    beq   sinkchar     	; this will fubar if the last char in a file is A. which is likely. BEWARE!

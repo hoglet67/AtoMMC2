@@ -69,7 +69,7 @@ tube_read_block:
 @tube_enabled:
 	JSR read_block_shared
 @loop:
-        readportFAST AREAD_DATA_REG 	; then read it
+        JSR  read_data_reg               ; then read it
         STA  TubeR3                 	; write to the tube data transfer register
         DEX
         BNE  @loop
@@ -94,7 +94,7 @@ tube_write_block:
         JSR prepare_write_data  		; take it
 @loop:
         LDA TubeR3						; read data from the tube data transfer register
-        writeportFAST AWRITE_DATA_REG
+        JSR write_data_reg
         DEX
         BNE @loop
 	JMP write_block_shared

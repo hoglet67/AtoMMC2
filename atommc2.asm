@@ -365,7 +365,7 @@ comint6:
 .include "crc.asm"
 .include "delete.asm"
 .include "exec.asm"
-;.include "fatinfo.asm"
+.include "fatinfo.asm"
 .include "help.asm"
 .include "info.asm"
 .include "load.asm"
@@ -457,8 +457,8 @@ com_tab:
    .byte "SAVE"
    FNADDR STARSAVE
 
-;   .byte "FATINFO"
-;   FNADDR STARFATINFO
+   .byte "FATINFO"
+   FNADDR STARFATINFO
 
    .byte "CRC"
    FNADDR STARCRC
@@ -482,7 +482,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V2.99"
+   .byte "ATOMMC2 V3.??"
 .IFNDEF EOOO
    .byte "A"
 .ELSE

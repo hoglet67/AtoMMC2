@@ -11,20 +11,6 @@
    .byte >addr, <addr
 .endmacro
 
-.macro readportFAST port
-.ifdef AVR
-	jsr	WaitUntilWritten
-.endif
-	lda	port
-.endmacro
-
-.macro writeportFAST port
-    sta port
-.ifdef AVR
-	jsr WaitUntilRead
-.endif
-.endmacro
-
 ; Note SLOWCMD used to take a port number, but since ALL calls used APORT_CMD
 ; it is more code size efficient to convert it to a subroutine call, that always
 ; uses ACMD_PORT.
@@ -41,8 +27,7 @@
 ; Simply an alias for SLOWCMD on AVR.
 .macro FASTCMD
 .ifndef AVR
-	writeportFAST	ACMD_REG
-	jsr				interwritedelay
+   jsr            write_cmd_reg
 	lda				ACMD_REG
 .else
 	SLOWCMD

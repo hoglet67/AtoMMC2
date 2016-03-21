@@ -73,10 +73,9 @@ do_cfg_cmd:
 
 @param1valid:
    lda   			$cb				; get read parameter
-   writeportFAST   	ALATCH_REG		; $b40e ; latch the value
-   jsr   			interwritedelay
+   jsr            write_latch_reg  ; latch the value
    ldx   			$ce             ; Load function code
    inx								; change get code to put
    txa
-   writeportFAST   	ACMD_REG		; $b40f
+   jsr            write_cmd_reg
    rts

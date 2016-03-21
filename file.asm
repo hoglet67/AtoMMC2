@@ -30,7 +30,7 @@ send_name:
    beq  @pumpname
 
 @nextchar:
-   writeportFAST  AWRITE_DATA_REG	; $b407
+   jsr  write_data_reg
    inx
 
 @pumpname:
@@ -39,8 +39,8 @@ send_name:
    bne  @nextchar
 
    lda  #0                  ; terminate the string
-   writeportFAST  	AWRITE_DATA_REG	; $b407
-   jmp  			interwritedelay
+   jsr  write_data_reg
+   rts
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -151,7 +151,7 @@ read_block:
     jsr read_block_shared
     ldy  #0
 @loop:
-    readportFAST	AREAD_DATA_REG	; then read it
+    jsr  read_data_reg  ; then read it
     sta  (RWPTR),y
     iny
     dex
@@ -161,8 +161,7 @@ read_block:
 read_block_shared:
     tax
 	; ask PIC for (A) bytes of data (0=256)
-	writeportFAST	ALATCH_REG	; set ammount to read
-	jsr				interwritedelay
+	 jsr write_latch_reg	            ; set ammount to read
 	SLOWCMDI 		CMD_READ_BYTES		; set command
     jsr  expect64orless
     jmp	prepare_read_data				; tell pic to release the data we just read
@@ -246,15 +245,14 @@ write_block:
 
 @loop:
     lda  			(RWPTR),y           ; upload data
-    writeportFAST	AWRITE_DATA_REG	
+    jsr        write_data_reg	
     iny
     dex
     bne 			@loop
 
 write_block_shared:	
     pla                     	; write block command
-	writeportFAST	ALATCH_REG	; ammount to write
-	jsr				interwritedelay
+	 jsr write_latch_reg	; ammount to write
 	SLOWCMDI 		CMD_WRITE_BYTES	; give command to write
     jmp  			expect64orless
 

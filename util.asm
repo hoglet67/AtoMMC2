@@ -1,30 +1,85 @@
-;
+
 ; renamed some subs as follows :
 ; PREPGETFRB406_SUB	to prepare_read_data
 ; PREPPUTTOB407_SUB to prepare_write_data
 ;	-- PHS 2013-10-09
 
+;----------------------------------------------------------------
+; Write command + wait
+;----------------------------------------------------------------
+
+write_cmd_reg:
+   sta   ACMD_REG
+.ifdef AVR
+	jmp   WaitUntilRead
+.else
+   jmp   inter_write_delay
+.endif
+
+;----------------------------------------------------------------
+; Write latch + wait
+;----------------------------------------------------------------
+
+write_latch_reg:				
+   sta   ALATCH_REG
+.ifdef AVR
+	jmp   WaitUntilRead
+.else
+   jmp   inter_write_delay
+.endif
+
+;----------------------------------------------------------------
+; Write data + wait
+;----------------------------------------------------------------
+
+write_data_reg:				
+   sta   AWRITE_DATA_REG
+.ifdef AVR
+	jmp   WaitUntilRead
+.else
+   jmp   data_write_delay
+.endif
+
+;----------------------------------------------------------------
+; Wait + Read data
+;----------------------------------------------------------------
+
+read_data_reg:				
+.ifdef AVR
+	jsr	WaitUntilWritten
+.else
+   jsr   data_read_delay
+.endif
+	lda	AREAD_DATA_REG
+	rts
+
+.ifndef AVR
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Short delay
 ;
 ; Enough to intersperse 2 writes to the FATPIC.
 ;
-interwritedelay:
-.ifndef AVR
-;   lda  #4
-	lda	#8
+inter_write_delay:
+   pha
+	lda	#16
+   bne   write_delay        
+data_write_delay:
+   pha
+   lda   #4
+write_delay:
    sec
-
 @loop:
    sbc  #1
    bne  @loop
-.endif
+   pla
+data_read_delay:
    rts
+.endif
 
 ; subroutines for macros in macro.inc
 SLOWCMD_SUB:
-   writeportFAST ACMD_REG
+   jsr   write_cmd_reg
 .ifndef AVR
 SlowLoop:
 
@@ -44,14 +99,11 @@ SLOWCMD_DELAY_LOOP:
 	
 prepare_read_data:
    lda 				#CMD_INIT_READ
-   writeportFAST 	ACMD_REG				
-   jmp 				interwritedelay
+   jmp            write_cmd_reg
 
 prepare_write_data: 
    lda 				#CMD_INIT_WRITE
-   writeportFAST 	ACMD_REG 			
-   jmp 				interwritedelay
- 
+   jmp            write_cmd_reg
    
 .ifdef AVR
 WaitUntilRead:
@@ -89,7 +141,7 @@ getasciizstringto140:
 
 @loop:
    iny
-   readportFAST 	AREAD_DATA_REG	; $b406
+   jsr         read_data_reg
    sta  			NAME,y
    bne  			@loop
 
@@ -109,7 +161,7 @@ read_data_buffer:
    ldy  #0
 
 @loop:
-   readportFAST 	AREAD_DATA_REG	; $b406
+   jsr         read_data_reg
    sta  (RWPTR),y
    iny
    dex
@@ -161,11 +213,9 @@ getcb:
 
    
 putcb:
-   writeportFAST	ALATCH_REG		; $b40e  ; latch the value
-   jsr   			interwritedelay
-
+   jsr            write_latch_reg
    lda   			#CMD_SET_CFG_BYTE      ; write latched val as config byte. irqs are now off
-   writeportFAST	ACMD_REG	
+   jsr            write_cmd_reg
    rts
 
 

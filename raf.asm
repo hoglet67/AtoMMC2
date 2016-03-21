@@ -132,7 +132,7 @@ osbputcode:
 	jsr write_data_reg		; Save databyte
 
 	lda #1				; Set nr of bytes to send
-	jsr set_latch_reg		; Wait
+	jsr write_latch_reg		; Wait
 
 	jsr mul4handle			; Command=$21+4*file handle
 	adc #CMD_WRITE_BYTES
@@ -168,7 +168,7 @@ osbgetcode:
 	beq bget_zero_device		; If file handle zero, output to screen
 
 	lda #1				; Set nr of bytes to send
-	jsr set_latch_reg		; Wait
+	jsr write_latch_reg		; Wait
 
 	jsr mul4handle			; Command=$22+4*file handle
 	adc #CMD_READ_BYTES		; CMD_READ_BYTES
@@ -202,7 +202,7 @@ bget_zero_device:
 ; - If A=1 the read EXT
 ; -   Send CMD_FILE_GETINFO command
 ; -   Send INIT_READ command
-; -   Read 3 bytes from WRITE_DATA_REG in $52/53/54
+; -   Read 3 bytes from WRITEDATAREG in $52/53/54
 ;
 ; Input:  A = 0 -> Read PTR
 ;	      1 -> Read EXT
@@ -300,28 +300,3 @@ mul4handle:
 	tya
 	and #3
 	jmp mul4
-
-;----------------------------------------------------------------
-; Send data + wait
-;----------------------------------------------------------------
-
-set_latch_reg:				
-	writeportFAST ALATCH_REG
-	jmp interwritedelay
-
-;----------------------------------------------------------------
-; Write data + wait
-;----------------------------------------------------------------
-
-write_data_reg:				
-	writeportFAST AWRITE_DATA_REG
-	jmp interwritedelay
-
-;----------------------------------------------------------------
-; Wait + Read data
-;----------------------------------------------------------------
-
-read_data_reg:				
-	jsr interwritedelay
-	lda AREAD_DATA_REG
-	rts
