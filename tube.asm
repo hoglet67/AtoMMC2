@@ -69,10 +69,10 @@ tube_read_block:
 @tube_enabled:
    jsr   read_block_shared
 @loop:
-   jsr    read_data_reg         ; then read it
-   sta    TUBE_R3               ; write to the tube data transfer register
+   jsr   read_data_reg          ; then read it
+   sta   TUBE_R3                ; write to the tube data transfer register
    dex  
-   bne    @loop
+   bne   @loop
 
 tube_disabled:
    rts  
