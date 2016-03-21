@@ -311,8 +311,8 @@ print_fileinfo:
    lda   LLENGTH+1
    jsr   HEXOUT
    lda   LLENGTH
-   jmp   HEXOUTS
-
+   jsr   HEXOUTS
+   jmp   OSCRLF
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;

@@ -37,7 +37,6 @@ osloadcode:
    bmi   @noprint
 
    jsr   print_fileinfo
-   jsr   OSCRLF
 
 @noprint:
    jsr   read_file

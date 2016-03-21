@@ -92,7 +92,7 @@ ossavecode:
 
    ; @@TUBE@@
    ; Test if the tube is enabled, then release
-   jsr tube_release_wrapper
+   jsr   tube_release_wrapper
 
    ; Don't need to call CLOSE_FILE here as write_file calls it.
    ; CLOSE_FILE
@@ -108,7 +108,7 @@ ossavecode:
    dex
    bpl   @cpydata
 
-   jsr   print_fileinfo
+   jmp   print_fileinfo
 
 @noprint:
-   jmp   OSCRLF
+   rts

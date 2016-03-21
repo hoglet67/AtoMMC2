@@ -26,6 +26,8 @@ CHAIN Optimization Phase 2, 0AD2
 
 Remove OSCRLF from *HELP, 0ACF
 
+Move OSCRLF into print_fileinfo, 0ACA
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless

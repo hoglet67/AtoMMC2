@@ -12,5 +12,4 @@ star_info:
    jsr   open_file_read
    jsr   read_info
    jsr   print_filename
-   jsr   print_fileinfo
-   jmp   OSCRLF
+   jmp   print_fileinfo
