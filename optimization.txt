@@ -18,6 +18,8 @@ One more saved RTS, 0AE1
 
 Changed fakekeys to be zero terminated, 0ADE
 
+A couple of JMPs replaced by BNE, 0ADC
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless

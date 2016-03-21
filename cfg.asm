@@ -12,7 +12,7 @@
 star_pbd:
    lda   #CMD_GET_PORT_DDR
    sta   $ce
-   jmp   do_cfg_cmd
+   bne   do_cfg_cmd             ; branch always
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -27,7 +27,7 @@ star_pbd:
 star_pbv:
    lda   #CMD_READ_PORT
    sta   $ce
-   jmp   do_cfg_cmd
+   bne   do_cfg_cmd             ; branch always
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
