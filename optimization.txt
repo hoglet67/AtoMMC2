@@ -22,6 +22,8 @@ A couple of JMPs replaced by BNE, 0ADC
 
 CHAIN Optimization Phase 1, 0AD8
 
+CHAIN Optimization Phase 2, 0AD2
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless
