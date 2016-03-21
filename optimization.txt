@@ -10,6 +10,8 @@ Factor out this from SAVE and DELETE, 0AE8
    beq   @preparetocont
    rts
 
+Use OSECHO insread of OSRDCH/OSWRCH, 0AE5
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless

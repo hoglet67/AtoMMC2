@@ -480,8 +480,7 @@ copy_name_loop:
 ;
 
 confirm_or_rts:
-   jsr   OSRDCH                 ; wait for a key press
-   jsr   OSWRCH                 ; echo it
+   jsr   OSECHO                 ; wait for a key press and echo it
 
    pha                          ; save it
    jsr   OSCRLF

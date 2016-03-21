@@ -54,6 +54,7 @@ FILTER     =$3cd         ; B - dir walk filter
 ;
 OSWRCH     =$fff4
 OSRDCH     =$ffe3
+OSECHO     =$ffe6 
 OSCRLF     =$ffed
 COSSYN     =$fa7d
 COSPOST    =$fa76
