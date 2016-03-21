@@ -1,4 +1,3 @@
-; /*
 ; atmmmc2def.h Symbolic defines for AtoMMC2
 
 ; 2011-05-25, Phill Harvey-Smith.
@@ -48,7 +47,7 @@ SAVVEC     =$20e
 ;
 FKIDX      =$3ca         ; B - fake key index
 RWLEN      =$3cb         ; W - count of bytes to write
-FILTER     =$3cd         ; B - dir walk filter 
+FILTER     =$3cd         ; B - dir walk filter
 
 
 ; FN       ADDR
@@ -68,22 +67,22 @@ COPYNAME   =$f818
 HEXOUT     =$f802
 HEXOUTS    =$f7fa
 STROUT     =$f7d1
-	
+
 ; I/O register base
 ;
 
 .ifdef ALTADDR
-AREG_BASE			= $b408
+AREG_BASE         = $b408
 .else
-AREG_BASE			= $b400	
+AREG_BASE         = $b400
 .endif
 
-ACMD_REG			= AREG_BASE+CMD_REG
-ALATCH_REG                      = AREG_BASE+LATCH_REG             
-AREAD_DATA_REG                  = AREG_BASE+READ_DATA_REG             
-AWRITE_DATA_REG                 = AREG_BASE+WRITE_DATA_REG             
-ASTATUS_REG			= AREG_BASE+STATUS_REG	
-	
+ACMD_REG       = AREG_BASE+CMD_REG
+ALATCH_REG                      = AREG_BASE+LATCH_REG
+AREAD_DATA_REG                  = AREG_BASE+READ_DATA_REG
+AWRITE_DATA_REG                 = AREG_BASE+WRITE_DATA_REG
+ASTATUS_REG       = AREG_BASE+STATUS_REG
+
 ; // Register definitions, these are offsets from 0xB400 on the Atom side.
 
 CMD_REG                         =   $00
@@ -164,17 +163,3 @@ ERROR_ALREADY_MOUNT             =   $0A
 MMC_MCU_BUSY                    =   $01
 MMC_MCU_READ                    =   $02
 MMC_MCU_WROTE                   =   $04
-
-
-
-
-
-
-
-
-
-
-
-
-
-

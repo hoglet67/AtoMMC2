@@ -1,5 +1,5 @@
 ;
-; **** Note **** to use this code you need to patch the floating point rom 
+; **** Note **** to use this code you need to patch the floating point rom
 ;
 ;=============================
 ;Floating Point Patch (#Dxxx):
@@ -19,815 +19,814 @@
 
 ; *** Options ***
 
-LATCH		= $BFFF
-SHADOW 		= $FD			; If $BFFF is write only otherwise SHADOW =$BFFF
-MAX		= $8
-ZPBASE		= $90
-ZPLENGTH	= $10
+LATCH           = $BFFF
+SHADOW          = $FD           ; If $BFFF is write only otherwise SHADOW =$BFFF
+MAX             = $8
+ZPBASE          = $90
+ZPLENGTH        = $10
 
 ; *** Workarea ***
 
-BASE		= $400
-BRKLOW		= BASE
-BRKHIGH		= BRKLOW+1
-BRKROM		= BRKHIGH+1
-STARTROM	= BRKROM+1
-TEMP		= STARTROM+1
-VECTOR		= TEMP
-DUMP		= TEMP+1
-VECT		= MAX*ZPLENGTH
-VECTAB		= VECT+DUMP+1 
-SUB_ACCU	= VECTAB+1+15*3
-SUB_STATUS	= SUB_ACCU+1
-SUB_Y		= SUB_STATUS+1
-SUB_X		= SUB_Y+1
-STACKPOINTER	= SUB_X
-SUBVECTOR	= SUB_X+1
-INTVECTOR	= SUBVECTOR+2
-INT_ACCU	= INTVECTOR+2
-INT_STATUS1	= INT_ACCU+1
-INT_STATUS2	= INT_STATUS1+1
-INT_X		= INT_STATUS2+1
-INT_Y		= INT_X+1
-OPT_PCHARME	= INT_Y+1
-FREE		= OPT_PCHARME+1
+BASE            = $400
+BRKLOW          = BASE
+BRKHIGH         = BRKLOW+1
+BRKROM          = BRKHIGH+1
+STARTROM        = BRKROM+1
+TEMP            = STARTROM+1
+VECTOR          = TEMP
+DUMP            = TEMP+1
+VECT            = MAX*ZPLENGTH
+VECTAB          = VECT+DUMP+1
+SUB_ACCU        = VECTAB+1+15*3
+SUB_STATUS      = SUB_ACCU+1
+SUB_Y           = SUB_STATUS+1
+SUB_X           = SUB_Y+1
+STACKPOINTER    = SUB_X
+SUBVECTOR       = SUB_X+1
+INTVECTOR       = SUBVECTOR+2
+INT_ACCU        = INTVECTOR+2
+INT_STATUS1     = INT_ACCU+1
+INT_STATUS2     = INT_STATUS1+1
+INT_X           = INT_STATUS2+1
+INT_Y           = INT_X+1
+OPT_PCHARME     = INT_Y+1
+FREE            = OPT_PCHARME+1
 
 ; *** Constants ***
 
-BRKVEC		= $202
-TEXT		= $F7D1
-CR		= $D
-LF		= $A
-DELIM		= $EA
+BRKVEC          = $202
+TEXT            = $F7D1
+CR              = $D
+LF              = $A
+DELIM           = $EA
 
 .SEGMENT "BRAN"
 
 ; *** Start of assembly ***
 
-	.BYTE $40,$bf			; ROM entry
+        .BYTE $40,$bf           ; ROM entry
 
 ; *** Entry in system ***
 
-ENTRY:
-	LDA 6				; Test directmode
-	CMP #1
-	BNE LABEL8
-
-	BIT $B001			; Test SHIFT
-	BMI LABEL8
-
-	LDX #0				; Test RETURN
-	LDA (5,X)
-	CMP #CR
-	BNE LABEL8
-
-	JMP UNLOCK+3			; If SHIFT-RETURN, unlock ROMs
-
-LABEL8:
-	BIT SHADOW			; ROM locked?
-	BVC NOT_LOCKED
-	JMP LOCKED
-
-; *** Not locked search ***
-
-NOT_LOCKED:
-	LDA SHADOW 			; Save current ROM nr
-	STA STARTROM
-	JSR UPDATE_VECTORS		; Save current vectors
-	JSR SWITCH_CONTEXT_OUT		; Store zeropage
-
-	LDA BRKVEC+1			; Check if breakvector is changed
-	CMP #>HANDLER
-	BEQ LABEL1			; If not, change it
-	STA BRKHIGH
-	LDA BRKVEC
-	STA BRKLOW
-
-	LDA SHADOW 			; Save lastrom
-	STA BRKROM
-LABEL1:
-	JMP SWITCH
-
-; ***  Try next box ***
-
-NEXT_BOX:
-	INC SHADOW			; Switch to next ROM
-	LDA SHADOW 
-	STA LATCH
-
-	CMP #MAX			; If last reached, switch to ROM 0
-	BNE LABEL2
-	LDA #0
-	STA SHADOW 
-	STA LATCH
-LABEL2:
-	JSR SWITCH_CONTEXT_IN		; Restore zeropage
-
-	LDA SHADOW 			; Check if all ROMs entered
-	CMP STARTROM
-	BNE SWITCH
-	JMP NOT_FOUND			; Command not found in ROMs, try table
-
-; *** Replace break vector and enter ROM ***
-
-SWITCH:
-	LDA #>HANDLER			; Replace breakvector
-	STA BRKVEC+1
-	LDA #<HANDLER
-	STA BRKVEC
-
-	LDA $A000			; Check if new ROM is legal
-	CMP #$40
-	BNE NEXT_BOX
- 	LDA $A001
-	CMP #$BF
-	BNE NEXT_BOX
-	JMP $A002			; Is legal, enter ROM
-
-; *** Central break handler ***
-
-HANDLER:
-	PLA
-	STA TEMP			; Save high byte ERROR
-	PLA
-	STA 0				; Save low byte ERROR
-
-	BIT SHADOW 			; ROM locked?
-	BVC NOT_LOCKED_ERROR
-	JMP LOCKED_ERROR
-
-; *** ERROR with ROM not locked ***
-
-NOT_LOCKED_ERROR:
-	CMP #94				; ERROR 94?
-	BNE NOT_ERROR_94
-
-	LDY $5E				; Check if command is abreviated
-	LDA (5),Y
-	CMP #'.'
-	BNE LABEL99
-	JMP NOT_FOUND			; Command not found in ROMs, try table
-LABEL99:
-	LDX #$FF			; Reset stackpointer
-	TXS
-	JMP NEXT_BOX			; Check next ROM
-
-; *** Function check ***
-
-NOT_ERROR_94:
-	LDA BRKLOW			; Set breakpointer
-	STA BRKVEC
-	LDA BRKHIGH
-	STA BRKVEC+1
-
-	LDA 0				; Get ERROR nr
-	CMP #174			; ERROR 174?
-	BEQ INSTALL
-
-	CMP #29				; ERROR 29?
-	BNE NOT_INSTALL
-
-; *** Install fake caller ***
-
-INSTALL:
-	TSX				; Save stackpointer
-	STX STACKPOINTER
-
-	LDX #$FF
-LB1:
-	LDA $100,X
-	CPX STACKPOINTER
-	BCC NOT_INSTALL
-	BEQ NOT_INSTALL
-
-	DEX
-	DEX
-	AND #$F0
-	CMP #$A0
-	BEQ LB1
-
-	CPX #$FD			; No A-block?
-	BEQ NOT_INSTALL
-
-	TXA
-	CLC
-	ADC #3
-	STA STACKPOINTER
-	PHA
-	PHA
-	PHA
-	TSX
-LB2:
-	LDA $103,X
-	STA $100,X
-	INX
-	CPX STACKPOINTER
-	BNE LB2
-
-	LDA STACKPOINTER
-	TAX
-	DEX
-	LDA SHADOW 
-	STA $100,X
-	DEX
-	LDA #>(SWITCH_BACK-1)
-	STA $100,X
-	LDA #<(SWITCH_BACK-1)
-	DEX
-	STA $100,X
-	
-NOT_INSTALL:
-	JSR SWITCH_CONTEXT_OUT		; Store zeropage
-	JSR UPDATE_VECTORS		; Save vectors
-
-	LDA BRKROM			; Set start ROM nr
-	STA SHADOW 
-	STA LATCH
-
-	JSR SWITCH_CONTEXT_IN		; Restore zeropage
-
-; *** Terminate search ***
-
-	LDA 0				; Get LB return address
-	PHA				; Push on stack
-	LDA TEMP			; Get HB return address
-	PHA				; Push on stack
-	JMP (BRKVEC)			; Return
-
-; *** ERROR with ROM locked ***
-
-LOCKED_ERROR:
-	LDA SHADOW			; Set start ROM nr
-	STA BRKROM
-
-	LDA 0				; Get ERROR nr
-	CMP #94				; ERROR 94?
-	BEQ LABEL3
-	JMP NOT_ERROR_94
-
-LABEL3:
-	LDX #$FF			; Reset stackpointer
-	TXS
-	JMP NOT_FOUND			; Command not found in ROMs, try table
-
-; *** Store zeropage (always #91-#98) ***
-
-SWITCH_CONTEXT_OUT:
-	LDA SHADOW 			; Get ROM nr
-	AND #$F				; Filter to 0-15
-	TAX
-	INX
-
-	LDA #0
-
-LABEL4:
-	CLC				; DUMP pointer = ROMnr * ZPLENGTH-1
-	ADC #ZPLENGTH
-	DEX
-	BNE LABEL4
-
-	LDX #(ZPLENGTH-1)		; Set ZPBASE pointer
-	TAY
-	DEY
-	
-LABEL5:
-	LDA ZPBASE,X			; Save zeropage
-	STA DUMP,Y
-	DEY
-	DEX
-	BPL LABEL5
-	RTS
-
-; *** Restore zeropage (always #91-#98) ***
-
-SWITCH_CONTEXT_IN:
-	LDA SHADOW 			; Get ROM nr
-	AND #$F				; Filter to 0-15
-	TAX
-	INX
-
-	LDA #0
-	
-LABEL6:
-	CLC				; DUMP pointer = ROMnr * ZPLENGTH-1
-	ADC #ZPLENGTH
-	DEX
-	BNE LABEL6
-
-	LDX #(ZPLENGTH-1)		; Set ZPBASE pointer
-	TAY
-	DEY
-	
-LABEL7:
-	LDA DUMP,Y			; Restore zeropage
-	STA ZPBASE,X
-	DEY
-	DEX
-	BPL LABEL7
-	RTS
-
-; *** Start search locked ***
-
-LOCKED:
-	LDA BRKVEC+1			; Check if break handler switched
-	CMP #>HANDLER
-	BEQ LABEL21
-
-	STA BRKHIGH			; If not, save break handler
-	LDA BRKVEC
-	STA BRKLOW
-
-	LDA #>HANDLER			; Replace break handler
-	STA BRKVEC+1
-	LDA #<HANDLER
-	STA BRKVEC
-
-	LDA SHADOW 			; Set start ROM nr
-	STA BRKROM
-	
-LABEL21:
-	LDA $A000			; Check if legal rom
-	CMP #$40
-	BNE TRAP_ERROR
-	LDA $A001
-	CMP #$BF
-	BNE TRAP_ERROR
-	JMP $A002			; If legal, enter ROM
-	
-TRAP_ERROR:
-	JMP $C558			; No legal ROM, return
-
-; *** Not found in boxes ***
-;     Try own table
-;     If not found in table
-;     Try by original BRKVEC
-
-NOT_FOUND:
-	LDA BRKLOW			; Reset break handler
-	STA BRKVEC
-	LDA BRKHIGH
-	STA BRKVEC+1
-
-	JSR SWITCH_CONTEXT_OUT		; Store zeropage
-
-	LDA BRKROM			; Reset ROM nr
-	STA SHADOW 
-	STA LATCH
-
-	JSR SWITCH_CONTEXT_IN		; Restore zeropage
-	LDX #$FF
-	
-NEXT_STATEMENT:
-	LDY $5E
-	LDA (5),Y
-	CMP #'.'
-	BNE LABEL54
-	
-TRAP_ERROR_94:
-	JMP $C558
-	
-LABEL54:
-	DEY
-	
-NEXT_CHAR:
-	INX
-	INY
-	
-LABEL12:
-	LDA TABLE,X
-	CMP #$FF
-	BEQ TRAP_ERROR_94
-	
-LABEL15:
-	CMP #$FE
-	BEQ LABEL14
-	CMP (5),Y
-	BEQ NEXT_CHAR
-	DEX
-	LDA (5),Y
-	CMP #'.'
-	BEQ LABEL100
-	
-LABEL13:
-	INX
-	LDA TABLE,X
-	CMP #$FE
-	BNE LABEL13
-	INX
-	INX
-	JMP NEXT_STATEMENT
-	
-LABEL100:
-	INX
-	LDA TABLE,X
-	CMP #$FE
-	BNE LABEL100
-	INY
-	
-LABEL14:
-	LDA TABLE+1,X
-	STA $53
-	LDA TABLE+2,X
-	STA $52
-	STY 3
-	LDX 4
-	JMP ($0052)
-
-; *** Own commands ***
-
-ROM:
-	JSR $C4E1
-	JSR UPDATE_VECTORS
-	LDX 4
-	DEX
-	STX 4
-	LDA $16,X
-	AND #$F
-	ORA #$40
- 	STA SHADOW 
- 	STA LATCH
-
- 	LDA $A000
-	CMP #$40
-	BNE LABEL9
-	LDA $A001
-	CMP #$BF
-	BEQ LABEL20
-	
-LABEL9:
-	JSR TEXT
-	.byte "NO ROM AVAILABLE"
-	.BYTE CR,LF,DELIM
-	
-LABEL20:
-	LDA BRKROM
-	ORA #$40
-	CMP SHADOW 
-	BEQ LABEL60
-
-	LDA #$D8			; Install original BRK handler
-	STA BRKVEC
-	LDA #$C9
-	STA BRKVEC+1
-	
-LABEL60:
-	JMP $C55B
-	
-UNLOCK:
-	JSR $C4E4
-	LDA SHADOW 
-	AND #$F
-	STA SHADOW 
-	STA LATCH
-	JMP $C55B
-
-; *** Table of commands ***
-
-TABLE:
-	.byte	"ROM",$FE
-	.byte	>ROM,<ROM
-	.byte	"UNLOCK",$FE
-	.byte	>UNLOCK,<UNLOCK
-
-	.BYTE $FF
-
-; *** Check vectors ***
-; If vector point to #Axxx, 
-; save it with corresponding ROM nr
+entry:
+   lda   6                      ; test directmode
+   cmp   #1
+   bne   label8
+
+   bit   $b001                  ; test shift
+   bmi   label8
+
+   ldx   #0                     ; test return
+   lda   (5,x)
+   cmp   #CR
+   bne   label8
+
+   jmp   unlock+3               ; if shift-return, unlock roms
+
+label8:
+   bit   SHADOW                 ; rom locked?
+   bvc   not_locked
+   jmp   locked
+
+; *** not locked search ***
+
+not_locked:
+   lda   SHADOW                 ; save current rom nr
+   sta   STARTROM
+   jsr   update_vectors         ; save current vectors
+   jsr   switch_context_out     ; store zeropage
+
+   lda   BRKVEC+1               ; check if breakvector is changed
+   cmp   #>handler
+   beq   label1                 ; if not, change it
+   sta   BRKHIGH
+   lda   BRKVEC
+   sta   BRKLOW
+
+   lda   SHADOW                 ; save lastrom
+   sta   BRKROM
+label1:
+   jmp   switch
+
+; ***  try next box ***
+
+next_box:
+   inc   SHADOW                 ; switch to next rom
+   lda   SHADOW
+   sta   LATCH
+
+   cmp   #MAX                   ; if last reached, switch to rom 0
+   bne   label2
+   lda   #0
+   sta   SHADOW
+   sta   LATCH
+label2:
+   jsr   switch_context_in      ; restore zeropage
+
+   lda   SHADOW                 ; check if all roms entered
+   cmp   STARTROM
+   bne   switch
+   jmp   not_found              ; command not found in roms, try table
+
+; *** replace break vector and enter rom ***
+
+switch:
+   lda   #>handler              ; replace breakvector
+   sta   BRKVEC+1
+   lda   #<handler
+   sta   BRKVEC
+
+   lda   $a000                  ; check if new rom is legal
+   cmp   #$40
+   bne   next_box
+   lda   $a001
+   cmp   #$bf
+   bne   next_box
+   jmp   $a002                  ; is legal, enter rom
+
+; *** central break handler ***
+
+handler:
+   pla  
+   sta   TEMP                   ; save high byte error
+   pla  
+   sta   0                      ; save low byte error
+
+   bit   SHADOW                 ; rom locked?
+   bvc   not_locked_error
+   jmp   locked_error
+
+; *** error with rom not locked ***
+
+not_locked_error:
+   cmp   #94                    ; error 94?
+   bne   not_error_94
+
+   ldy   $5e                    ; check if command is abreviated
+   lda   (5),y
+   cmp   #'.'
+   bne   label99
+   jmp   not_found              ; command not found in roms, try table
+label99:
+   ldx   #$ff                   ; reset STACKPOINTER
+   txs  
+   jmp   next_box               ; check next rom
+
+; *** function check ***
+
+not_error_94:
+   lda   BRKLOW                 ; set breakpointer
+   sta   BRKVEC
+   lda   BRKHIGH
+   sta   BRKVEC+1
+
+   lda   0                      ; get error nr
+   cmp   #174                   ; error 174?
+   beq   install
+
+   cmp   #29                    ; error 29?
+   bne   not_install
+
+; *** install fake caller ***
+
+install:
+   tsx                          ; save STACKPOINTER
+   stx   STACKPOINTER
+
+   ldx   #$ff
+lb1:
+   lda   $100,x
+   cpx   STACKPOINTER
+   bcc   not_install
+   beq   not_install
+
+   dex  
+   dex  
+   and   #$f0
+   cmp   #$a0
+   beq   lb1
+
+   cpx   #$fd                   ; no a-block?
+   beq   not_install
+
+   txa  
+   clc  
+   adc   #3
+   sta   STACKPOINTER
+   pha  
+   pha  
+   pha  
+   tsx  
+lb2:
+   lda   $103,x
+   sta   $100,x
+   inx  
+   cpx   STACKPOINTER
+   bne   lb2
+
+   lda   STACKPOINTER
+   tax  
+   dex  
+   lda   SHADOW
+   sta   $100,x
+   dex  
+   lda   #>(switch_back-1)
+   sta   $100,x
+   lda   #<(switch_back-1)
+   dex  
+   sta   $100,x
+
+not_install:
+   jsr   switch_context_out     ; store zeropage
+   jsr   update_vectors         ; save vectors
+
+   lda   BRKROM                 ; set start rom nr
+   sta   SHADOW
+   sta   LATCH
+
+   jsr   switch_context_in      ; restore zeropage
+
+; *** terminate search ***
+
+   lda   0                      ; get lb return address
+   pha                          ; push on stack
+   lda   TEMP                   ; get hb return address
+   pha                          ; push on stack
+   jmp   (BRKVEC)               ; return
+
+; *** error with rom locked ***
+
+locked_error:
+   lda   SHADOW                 ; set start rom nr
+   sta   BRKROM
+
+   lda   0                      ; get error nr
+   cmp   #94                    ; error 94?
+   beq   label3
+   jmp   not_error_94
+
+label3:
+   ldx   #$ff                   ; reset STACKPOINTER
+   txs  
+   jmp   not_found              ; command not found in roms, try table
+
+; *** store zeropage (always #91-#98) ***
+
+switch_context_out:
+   lda   SHADOW                 ; get rom nr
+   and   #$f                    ; filter to 0-15
+   tax  
+   inx  
+
+   lda   #0
+
+label4:
+   clc                          ; dump pointer = romnr * ZPLENGTH-1
+   adc   #ZPLENGTH
+   dex  
+   bne   label4
+
+   ldx   #(ZPLENGTH-1)          ; set ZPBASE pointer
+   tay  
+   dey  
+
+label5:
+   lda   ZPBASE,x               ; save zeropage
+   sta   DUMP,y
+   dey  
+   dex  
+   bpl   label5
+   rts  
+
+; *** restore zeropage (always #91-#98) ***
+
+switch_context_in:
+   lda   SHADOW                 ; get rom nr
+   and   #$f                    ; filter to 0-15
+   tax  
+   inx  
+
+   lda   #0
+
+label6:
+   clc                          ; dump pointer = romnr * ZPLENGTH-1
+   adc   #ZPLENGTH
+   dex  
+   bne   label6
+
+   ldx   #(ZPLENGTH-1)          ; set ZPBASE pointer
+   tay  
+   dey  
+
+label7:
+   lda   DUMP,y                 ; restore zeropage
+   sta   ZPBASE,x
+   dey  
+   dex  
+   bpl   label7
+   rts  
+
+; *** start search locked ***
+
+locked:
+   lda   BRKVEC+1               ; check if break handler switched
+   cmp   #>handler
+   beq   label21
+
+   sta   BRKHIGH                ; if not, save break handler
+   lda   BRKVEC
+   sta   BRKLOW
+
+   lda   #>handler              ; replace break handler
+   sta   BRKVEC+1
+   lda   #<handler
+   sta   BRKVEC
+
+   lda   SHADOW                 ; set start rom nr
+   sta   BRKROM
+
+label21:
+   lda   $a000                  ; check if legal rom
+   cmp   #$40
+   bne   trap_error
+   lda   $a001
+   cmp   #$bf
+   bne   trap_error
+   jmp   $a002                  ; if legal, enter rom
+
+trap_error:
+   jmp   $c558                  ; no legal rom, return
+
+; *** not found in boxes ***
+;     try own table
+;     if not found in table
+;     try by original BRKVEC
+
+not_found:
+   lda   BRKLOW                 ; reset break handler
+   sta   BRKVEC
+   lda   BRKHIGH
+   sta   BRKVEC+1
+
+   jsr   switch_context_out     ; store zeropage
+
+   lda   BRKROM                 ; reset rom nr
+   sta   SHADOW
+   sta   LATCH
+
+   jsr   switch_context_in      ; restore zeropage
+   ldx   #$ff
+
+next_statement:
+   ldy   $5e
+   lda   (5),y
+   cmp   #'.'
+   bne   label54
+
+trap_error_94:
+   jmp   $c558
+
+label54:
+   dey  
+
+next_char:
+   inx  
+   iny  
+
+label12:
+   lda   table,x
+   cmp   #$ff
+   beq   trap_error_94
+
+label15:
+   cmp   #$fe
+   beq   label14
+   cmp   (5),y
+   beq   next_char
+   dex  
+   lda   (5),y
+   cmp   #'.'
+   beq   label100
+
+label13:
+   inx  
+   lda   table,x
+   cmp   #$fe
+   bne   label13
+   inx  
+   inx  
+   jmp   next_statement
+
+label100:
+   inx  
+   lda   table,x
+   cmp   #$fe
+   bne   label100
+   iny  
+
+label14:
+   lda   table+1,x
+   sta   $53
+   lda   table+2,x
+   sta   $52
+   sty   3
+   ldx   4
+   jmp   ($0052)
+
+; *** own commands ***
+
+rom:
+   jsr   $c4e1
+   jsr   update_vectors
+   ldx   4
+   dex  
+   stx   4
+   lda   $16,x
+   and   #$f
+   ora   #$40
+   sta   SHADOW
+   sta   LATCH
+
+   lda   $a000
+   cmp   #$40
+   bne   label9
+   lda   $a001
+   cmp   #$bf
+   beq   label20
+
+label9:
+   jsr   TEXT
+   .byte "NO ROM AVAILABLE"
+   .byte CR,LF,DELIM
+
+label20:
+   lda   BRKROM
+   ora   #$40
+   cmp   SHADOW
+   beq   label60
+
+   lda   #$d8                   ; install original brk handler
+   sta   BRKVEC
+   lda   #$c9
+   sta   BRKVEC+1
+
+label60:
+   jmp   $c55b
+
+unlock:
+   jsr   $c4e4
+   lda   SHADOW
+   and   #$f
+   sta   SHADOW
+   sta   LATCH
+   jmp   $c55b
+
+; *** table of commands ***
+
+table:
+   .byte "ROM",$fe
+   .byte >rom,<rom
+   .byte "UNLOCK",$fe
+   .byte >unlock,<unlock
+
+   .byte $ff
+
+; *** check vectors ***
+; if vector point to #axxx,
+; save it with corresponding rom nr
 ; and replace vector
 
-UPDATE_VECTORS:
-	PHP
-	SEI
+update_vectors:
+   php  
+   sei  
 
-	LDX #0				; Reset pointers
-	LDY #0
-	
-LABEL30:
-	LDA $201,X			; Check if vector points to #Axxx
-	AND #$F0
-	CMP #$A0
-	BNE LABEL31
-	CPX #2				; Skip BRK vector
-	BEQ LABEL31
+   ldx   #0                     ; reset pointers
+   ldy   #0
 
-	LDA $200,X			; Save vector
-	STA VECTAB+1,Y
-	LDA $201,X
-	STA VECTAB,Y
-	LDA SHADOW 			; Save ROM nr
-	STA VECTAB+2,Y
+label30:
+   lda   $201,x                 ; check if vector points to #axxx
+   and   #$f0
+   cmp   #$a0
+   bne   label31
+   cpx   #2                     ; skip brk vector
+   beq   label31
 
-	TXA				; Replace vector
-	ASL A
-	ASL A
-	CLC
-	ADC #<VECENTRY
-	STA $200,X
-	LDA #>VECENTRY
-	ADC #0
- 	STA $201,X
-	
-LABEL31:
-	INX				; Point to next vector
-	INX
+   lda   $200,x                 ; save vector
+   sta   VECTAB+1,y
+   lda   $201,x
+   sta   VECTAB,y
+   lda   SHADOW                 ; save rom nr
+   sta   VECTAB+2,y
 
-	INY
-	INY
-	INY
+   txa                          ; replace vector
+   asl   a
+   asl   a
+   clc  
+   adc   #<vecentry
+   sta   $200,x
+   lda   #>vecentry
+   adc   #0
+   sta   $201,x
 
-	CPX #$1C			; Check end of vectors
-	BNE LABEL30
+label31:
+   inx                          ; point to next vector
+   inx  
 
-	LDA $3FF			; Check if plot vector points at #Axxx (SCREEN ROM)
- 	AND #$F0
-	CMP #$A0
-	BNE LABEL32
+   iny  
+   iny  
+   iny  
 
-	LDA $3FF			; Save plot vector
-	STA VECTAB,Y
-	LDA $3FE
-	STA VECTAB+1,Y
-	LDA #>(VECENTRY+14*8)		; Replace plot vector
-	STA $3FF
-	LDA #<(VECENTRY+14*8)
-	STA $3FE
+   cpx   #$1c                   ; check end of vectors
+   bne   label30
 
-	LDA SHADOW			; Save ROM nr
-	STA VECTAB+2,Y
-	
-LABEL32:
-	PLP
-	RTS
+   lda   $3ff                   ; check if plot vector points at #axxx (screen rom)
+   and   #$f0
+   cmp   #$a0
+   bne   label32
 
-; *** Entry vector pathways ***
+   lda   $3ff                   ; save plot vector
+   sta   VECTAB,y
+   lda   $3fe
+   sta   VECTAB+1,y
+   lda   #>(vecentry+14*8)      ; replace plot vector
+   sta   $3ff
+   lda   #<(vecentry+14*8)
+   sta   $3fe
 
-VECENTRY:
-	JSR ISAVE			; $200, NMI vector
-	LDX #0
-	JMP IJOB
+   lda   SHADOW                 ; save rom nr
+   sta   VECTAB+2,y
 
-	NOP				; $202, BRK vector
-	NOP
-	NOP
-	NOP
-	NOP
-	JMP $C558
+label32:
+   plp  
+   rts  
 
-	JSR ISAVE			; $204, IRQ vector
-	LDX #6
-	JMP IJOB
+; *** entry vector pathways ***
 
-	JSR SAVE			; $206, *COM vector
-	LDX #9
-	JMP JOB
+vecentry:
+   jsr   isave                  ; $200, nmi vector
+   ldx   #0
+   jmp   ijob
 
-	JSR SAVE			; $208, Write vector
-	LDX #12
-	JMP JOB
+   nop                          ; $202, brk vector
+   nop  
+   nop  
+   nop  
+   nop  
+   jmp   $c558
 
-	JSR SAVE			; $20A, Read vector
-	LDX #15
-	JMP JOB
+   jsr   isave                  ; $204, irq vector
+   ldx   #6
+   jmp   ijob
 
-	JSR SAVE			; $20C, Load vector
-	LDX #18
-	JMP JOB
+   jsr   save                   ; $206, *com vector
+   ldx   #9
+   jmp   job
 
-	JSR SAVE			; $20E, Save vector
-	LDX #21
-	JMP JOB
+   jsr   save                   ; $208, write vector
+   ldx   #12
+   jmp   job
 
-	JSR SAVE			; $210,  vector
-	LDX #24
-	JMP JOB
+   jsr   save                   ; $20a, read vector
+   ldx   #15
+   jmp   job
 
-	JSR SAVE			; $212,  vector
-	LDX #27
-	JMP JOB
+   jsr   save                   ; $20c, load vector
+   ldx   #18
+   jmp   job
 
-	JSR SAVE			; $214, Get byte vector
-	LDX #30
-	JMP JOB
+   jsr   save                   ; $20e, save vector
+   ldx   #21
+   jmp   job
 
-	JSR SAVE			; $216, Put byte vector
-	LDX #33
-	JMP JOB
+   jsr   save                   ; $210,  vector
+   ldx   #24
+   jmp   job
 
-	JSR SAVE			; $218, Print message vector
-	LDX #36
-	JMP JOB
+   jsr   save                   ; $212,  vector
+   ldx   #27
+   jmp   job
 
-	JSR SAVE			; $21A, Shut vector
-	LDX #39
-	JMP JOB
- 
-	JSR SAVE			; $3FF, Plot vector
-	LDX #42
-	JMP JOB
+   jsr   save                   ; $214, get byte vector
+   ldx   #30
+   jmp   job
 
-; *** Save normal processor/registers ***
+   jsr   save                   ; $216, put byte vector
+   ldx   #33
+   jmp   job
 
-SAVE:
-	PHP				; Save processor status
-	STA SUB_ACCU			; Save accu
-	PLA
-	STA SUB_STATUS			; Save status
-	STX SUB_X			; Save X-reg
-	STY SUB_Y			; Save Y-reg
-	RTS
+   jsr   save                   ; $218, print message vector
+   ldx   #36
+   jmp   job
 
-; *** Save interrupt processor/registers ***
+   jsr   save                   ; $21a, shut vector
+   ldx   #39
+   jmp   job
 
-ISAVE:
-	PHP				; Save processor status
-	STA INT_ACCU			; Save accu
-	PLA
-	STA INT_STATUS1			; Save status
-	STX INT_X			; Save X-reg
-	STY INT_Y			; Save Y-reg
-	RTS
+   jsr   save                   ; $3ff, plot vector
+   ldx   #42
+   jmp   job
 
-; *** Reset normal processor/registers ***
+; *** save normal processor/registers ***
 
-LOAD:
-	LDY SUB_Y			; Reset Y-reg
-	LDX SUB_X			; Reset X-reg
-	LDA SUB_STATUS			; Reset status
-	PHA
-	LDA SUB_ACCU			; Reset accu
-	PLP				; Reset processor status
-	RTS
+save:
+   php                          ; save processor status
+   sta   SUB_ACCU               ; save accu
+   pla  
+   sta   SUB_STATUS             ; save status
+   stx   SUB_X                  ; save x-reg
+   sty   SUB_Y                  ; save y-reg
+   rts  
 
-; *** Reset interrupt processor/registers ***
+; *** save interrupt processor/registers ***
 
-ILOAD:
-	LDX INT_X			; Reset Y-reg
-	LDY INT_Y			; Reset X-reg
-	LDA INT_STATUS1			; Reset status
-	PHA
-	LDA INT_ACCU			; Reset accu
-	PLP				; Reset processor status
-	RTS
+isave:
+   php                          ; save processor status
+   sta   INT_ACCU               ; save accu
+   pla  
+   sta   INT_STATUS1            ; save status
+   stx   INT_X                  ; save x-reg
+   sty   INT_Y                  ; save y-reg
+   rts  
 
-; *** Interrupt switching pathway ***
+; *** reset normal processor/registers ***
 
-IJOB:
-	PLA
-	STA INT_ACCU
-	PLA
-	PHA
-	STA INT_STATUS2
+load:
+   ldy   SUB_Y                  ; reset y-reg
+   ldx   SUB_X                  ; reset x-reg
+   lda   SUB_STATUS             ; reset status
+   pha  
+   lda   SUB_ACCU               ; reset accu
+   plp                          ; reset processor status
+   rts  
 
-	LDA SHADOW			; Save ROM nr
-	PHA
+; *** reset interrupt processor/registers ***
 
-	LDA VECTAB+2,X			; Reset ROM nr
-	STA SHADOW 
-	STA LATCH
+iload:
+   ldx   INT_X                  ; reset y-reg
+   ldy   INT_Y                  ; reset x-reg
+   lda   INT_STATUS1            ; reset status
+   pha  
+   lda   INT_ACCU               ; reset accu
+   plp                          ; reset processor status
+   rts  
 
-	LDA VECTAB,X			; Reset NMI/IRQ vector
-	STA INTVECTOR+1
-	LDA VECTAB+1,X
-	STA INTVECTOR
+; *** interrupt switching pathway ***
 
-	LDA #>IENTRY			; Replace NMI/IRQ vector
-	PHA
-	LDA #<IENTRY
-	PHA
-	LDA INT_STATUS2
-	PHA
-	LDA INT_ACCU
-	PHA
-	JSR ILOAD
-	JMP (INTVECTOR)			; Jump interrupt vector
+ijob:
+   pla  
+   sta   INT_ACCU
+   pla  
+   pha  
+   sta   INT_STATUS2
+
+   lda   SHADOW                 ; save rom nr
+   pha  
+
+   lda   VECTAB+2,x             ; reset rom nr
+   sta   SHADOW
+   sta   LATCH
+
+   lda   VECTAB,x               ; reset nmi/irq vector
+   sta   INTVECTOR+1
+   lda   VECTAB+1,x
+   sta   INTVECTOR
+
+   lda   #>ientry               ; replace nmi/irq vector
+   pha  
+   lda   #<ientry
+   pha  
+   lda   INT_STATUS2
+   pha  
+   lda   INT_ACCU
+   pha  
+   jsr   iload
+   jmp   (INTVECTOR)            ; jump interrupt vector
 
 
-; *** NMI/IRQ entry ***
+; *** nmi/irq entry ***
 
-IENTRY:
-	JSR ISAVE			; Save processor/register values
-	PLA
-	STA SHADOW 
-	STA LATCH
-	PLP
-	LDA INT_STATUS2
-	PHA
-	JSR ILOAD			; Load processor/register values
-	RTI				; Return from interrupt
+ientry:
+   jsr   isave                  ; save processor/register values
+   pla  
+   sta   SHADOW
+   sta   LATCH
+   plp  
+   lda   INT_STATUS2
+   pha  
+   jsr   iload                  ; load processor/register values
+   rti                          ; return from interrupt
 
-; *** Non interrupt switching pathway ***
+; *** non interrupt switching pathway ***
 
-JOB:
-	STX VECTOR
-	TXA
-	PHA
+job:
+   stx   VECTOR
+   txa  
+   pha  
 
-	LDA $60				; Save option PCharm
-	STA OPT_PCHARME			;**!!**
-	
-	LDA VECTAB+2,X
-	CMP SHADOW 
-	BEQ SHORT_EXECUTION
-	CPX #21				; Save file
-	BNE LABEL40
+   lda   $60                    ; save option pcharm
+   sta   OPT_PCHARME            ;**!!**
 
-	JSR UPDATE_VECTORS		;**!!**
-	LDX VECTOR
-	
-LABEL40:
-	CPX #30				; Get byte
-	BEQ SHORT_EXECUTION
-	CPX #33				; Put byte
-	BEQ SHORT_EXECUTION
-	JSR SWITCH_CONTEXT_OUT		; Store zeropage
-	LDX VECTOR
-	LDA SHADOW 
-	PHA
-	LDA VECTAB+1,X
-	STA SUBVECTOR
-	LDA VECTAB,X
-	STA SUBVECTOR+1
-	LDA VECTAB+2,X
-	STA SHADOW 
-	STA LATCH
-	JSR SWITCH_CONTEXT_IN		; Restore zeropage
-	JSR LOAD
-	JSR LB50
-	JMP LB51
-	
-LB50:
-	JMP (SUBVECTOR)
-	
-LB51:
-	JSR SAVE
-	JSR SWITCH_CONTEXT_OUT		; Store zeropage
-	PLA
-	STA SHADOW 
-	STA LATCH
-	JSR SWITCH_CONTEXT_IN		; Restore zeropage
+   lda   VECTAB+2,x
+   cmp   SHADOW
+   beq   short_execution
+   cpx   #21                    ; save file
+   bne   label40
 
-	LDA OPT_PCHARME			;**!!**
-	STA $60
+   jsr   update_vectors         ;**!!**
+   ldx   VECTOR
 
-	PLA
-	CMP #21				; Save file
-	BNE LB10
-	LDA VECTAB+13
-	CMP #$CE			; ED64 outchar?
-	BNE LB10
+label40:
+   cpx   #30                    ; get byte
+   beq   short_execution
+   cpx   #33                    ; put byte
+   beq   short_execution
+   jsr   switch_context_out     ; store zeropage
+   ldx   VECTOR
+   lda   SHADOW
+   pha  
+   lda   VECTAB+1,x
+   sta   SUBVECTOR
+   lda   VECTAB,x
+   sta   SUBVECTOR+1
+   lda   VECTAB+2,x
+   sta   SHADOW
+   sta   LATCH
+   jsr   switch_context_in      ; restore zeropage
+   jsr   load
+   jsr   lb50
+   jmp   lb51
 
-	LDA #$CE			;**!!**
-	STA $208
-	LDA #$AC
-	STA $209
-	
-LB10:
-	JMP LOAD
+lb50:
+   jmp   (SUBVECTOR)
 
-; *** No swith pathway ***
+lb51:
+   jsr   save
+   jsr   switch_context_out     ; store zeropage
+   pla  
+   sta   SHADOW
+   sta   LATCH
+   jsr   switch_context_in      ; restore zeropage
 
-SHORT_EXECUTION:
-	PLA
-	LDX VECTOR
-	LDA SHADOW 
-	PHA
-	LDA VECTAB+2,X
-	STA SHADOW 
-	STA LATCH
-	LDA VECTAB,X
-	STA SUBVECTOR+1
-	LDA VECTAB+1,X
-	STA SUBVECTOR
-	JSR LOAD
-	JSR LB60
-	JMP LB61
-	
-LB60:
-	JMP (SUBVECTOR)
-	
-LB61:
-	JSR SAVE
-	PLA
-	STA SHADOW 
-	STA LATCH
+   lda   OPT_PCHARME            ;**!!**
+   sta   $60
 
-	LDA OPT_PCHARME			;**!!**
-	STA $60
-	JMP LOAD
+   pla  
+   cmp   #21                    ; save file
+   bne   lb10
+   lda   VECTAB+13
+   cmp   #$ce                   ; ed64 outchar?
+   bne   lb10
 
-; *** Fake expression caller ***
+   lda   #$ce                   ;**!!**
+   sta   $208
+   lda   #$ac
+   sta   $209
 
-SWITCH_BACK:
-	JSR SAVE
-	JSR SWITCH_CONTEXT_OUT		; Store zeropage
-	PLA
-	STA SHADOW 
-	STA LATCH
-	JSR SWITCH_CONTEXT_IN		; Restore zeropage
-	LDA #>HANDLER			; Reinit break handler
-	STA BRKVEC+1
-	LDA #<HANDLER
-	STA BRKVEC
-	JMP LOAD
+lb10:
+   jmp   load
 
+; *** no swith pathway ***
+
+short_execution:
+   pla  
+   ldx   VECTOR
+   lda   SHADOW
+   pha  
+   lda   VECTAB+2,x
+   sta   SHADOW
+   sta   LATCH
+   lda   VECTAB,x
+   sta   SUBVECTOR+1
+   lda   VECTAB+1,x
+   sta   SUBVECTOR
+   jsr   load
+   jsr   lb60
+   jmp   lb61
+
+lb60:
+   jmp   (SUBVECTOR)
+
+lb61:
+   jsr   save
+   pla  
+   sta   SHADOW
+   sta   LATCH
+
+   lda   OPT_PCHARME            ;**!!**
+   sta   $60
+   jmp   load
+
+; *** fake expression caller ***
+
+switch_back:
+   jsr   save
+   jsr   switch_context_out     ; store zeropage
+   pla  
+   sta   SHADOW
+   sta   LATCH
+   jsr   switch_context_in      ; restore zeropage
+   lda   #>handler              ; reinit break handler
+   sta   BRKVEC+1
+   lda   #<handler
+   sta   BRKVEC
+   jmp   load

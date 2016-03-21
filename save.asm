@@ -1,15 +1,13 @@
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
-; STARSAVE
+; *SAVE
 ;
 ; Parses filename then resumes execution of the BIOS' save routine.
 ;
-STARSAVE:
-   jsr  read_filename       ; copy filename into $140
-   jsr  $f844               ; set $c9\a = $140, set x = $c9
-   jmp  $fabe               ; scan parameters and jmp through SAVVEC
-
-
+star_save:
+   jsr   read_filename          ; copy filename into $140
+   jsr   $f844                  ; set $c9\a = $140, set x = $c9
+   jmp   $fabe                  ; scan parameters and jmp through SAVVEC
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -24,17 +22,17 @@ STARSAVE:
 ; 8,x = data end address + 1
 ;
 ossavecode:
-   jsr  $f84f               ; copy data block at $00,x to COS workspace at $c9
-   jsr	copy_name
-   jsr	open_file_write     ; returns with any error in A
+   jsr   $f84f                  ; copy data block at $00,x to COS workspace at $c9
+   jsr   copy_name
+   jsr   open_file_write        ; returns with any error in A
 
    and   #$3f
    beq   @continue
 
-   cmp   #$08              ; FILE EXISTS
-   beq   @askover   
+   cmp   #$08                   ; FILE EXISTS
+   beq   @askover
 
-   jmp   expect64orless    ; other kind of error
+   jmp   expect64orless         ; other kind of error
 
 @askover:
    jsr   overwrite
@@ -48,20 +46,20 @@ ossavecode:
    rts
 
 @preparetocont:
-   jsr	delete_file
+   jsr   delete_file
 
-   jsr	open_file_write     
+   jsr   open_file_write
    jsr   expect64orless
 
 @continue:
 
-   ; @@TUBE@@ 
+   ; @@TUBE@@
    ; Test if the tube is enabled, then claim and initiate transfer
-   ldx #SLOAD            ; block containing transfer address
-   ldy #0                ; transfer type
-   jsr tube_claim_wrapper
-	
-   lda   SLOAD           ; tag the file info onto the end of the filename data
+   ldx   #SLOAD                 ; block containing transfer address
+   ldy   #0                     ; transfer type
+   jsr   tube_claim_wrapper
+
+   lda   SLOAD                  ; tag the file info onto the end of the filename data
    sta   $150
    lda   SLOAD+1
    sta   $151
@@ -77,7 +75,7 @@ ossavecode:
    sbc   SSTART
    sta   $154
 
-   ldx   #$ff          ; zero out any data after the name at $140
+   ldx   #$ff                   ; zero out any data after the name at $140
 
 @mungename:
    inx
@@ -93,36 +91,32 @@ ossavecode:
    cpx   #16
    bne   @munge2
 
-   jsr   write_info         ; write the ATM header
+   jsr   write_info             ; write the ATM header
 
-   jsr   write_file         ; save the main body of data
+   jsr   write_file             ; save the main body of data
 
-   ; @@TUBE@@ 
+   ; @@TUBE@@
    ; Test if the tube is enabled, then release
    jsr tube_release_wrapper
 
-; Don't need to call CLOSE_FILE here as write_file calls it.
-;   CLOSE_FILE
+   ; Don't need to call CLOSE_FILE here as write_file calls it.
+   ; CLOSE_FILE
 
-   bit   MONFLAG             ; 0 = mon, ff = nomon
+   bit   MONFLAG                ; 0 = mon, ff = nomon
    bmi   @noprint
 
    ldx   #5
-   
+
 @cpydata:
    lda   $150,x
    sta   LLOAD,x
    dex
    bpl   @cpydata
-   
+
    jsr   print_fileinfo
 
 @noprint:
    jmp   OSCRLF
-
-
-
-
 
 overwrite:
    jsr   STROUT

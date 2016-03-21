@@ -4,9 +4,9 @@
 ;
 ; Deletes the specified file after a prompt, unless Y specified on command line
 ;
-STARDELETE:
-   jsr  read_filename
-   jsr	open_file_read
+star_delete:
+   jsr   read_filename
+   jsr   open_file_read
 
    jsr   confirm
 
@@ -19,10 +19,8 @@ STARDELETE:
    rts
 
 @continue:
-   jsr	delete_file
+   jsr   delete_file
    rts
-
-
 
 confirm:
    jsr   STROUT

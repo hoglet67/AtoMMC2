@@ -1,57 +1,47 @@
-
-; renamed some subs as follows :
-; PREPGETFRB406_SUB	to prepare_read_data
-; PREPPUTTOB407_SUB to prepare_write_data
-;	-- PHS 2013-10-09
-
-;----------------------------------------------------------------
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ; Write command + wait
-;----------------------------------------------------------------
 
 write_cmd_reg:
    sta   ACMD_REG
 .ifdef AVR
-	jmp   WaitUntilRead
+   jmp   WaitUntilRead
 .else
    jmp   inter_write_delay
 .endif
 
-;----------------------------------------------------------------
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ; Write latch + wait
-;----------------------------------------------------------------
 
-write_latch_reg:				
+write_latch_reg:
    sta   ALATCH_REG
 .ifdef AVR
-	jmp   WaitUntilRead
+   jmp   WaitUntilRead
 .else
    jmp   inter_write_delay
 .endif
 
-;----------------------------------------------------------------
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ; Write data + wait
-;----------------------------------------------------------------
 
-write_data_reg:				
+write_data_reg:
    sta   AWRITE_DATA_REG
 .ifdef AVR
-	jmp   WaitUntilRead
+   jmp   WaitUntilRead
 .else
    jmp   data_write_delay
 .endif
 
-;----------------------------------------------------------------
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ; Wait + Read data
-;----------------------------------------------------------------
 
-read_data_reg:				
+read_data_reg:
 .ifdef AVR
-	jsr	WaitUntilWritten
+   jsr   WaitUntilWritten
 .else
    jsr   data_read_delay
 .endif
-	lda	AREAD_DATA_REG
-	rts
+   lda   AREAD_DATA_REG
+   rts
 
 .ifndef AVR
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -62,16 +52,16 @@ read_data_reg:
 ;
 inter_write_delay:
    pha
-	lda	#16
-   bne   write_delay        
+   lda   #16
+   bne   write_delay
 data_write_delay:
    pha
    lda   #4
 write_delay:
    sec
 @loop:
-   sbc  #1
-   bne  @loop
+   sbc   #1
+   bne   @loop
    pla
 data_read_delay:
    rts
@@ -83,46 +73,46 @@ SLOWCMD_SUB:
 .ifndef AVR
 SlowLoop:
 
-	lda #0
-	sec 
+   lda   #0
+   sec
 SLOWCMD_DELAY_LOOP:
-	sbc #1
-	bne SLOWCMD_DELAY_LOOP
+   sbc   #1
+   bne   SLOWCMD_DELAY_LOOP
 
-   lda ACMD_REG
-   bmi SlowLoop
+   lda   ACMD_REG
+   bmi   SlowLoop
 .else
-	jsr	WaitWhileBusy	; Keep waiting until not busy
-	lda	ACMD_REG		; get status for client
+   jsr   WaitWhileBusy       ; Keep waiting until not busy
+   lda   ACMD_REG            ; get status for client
 .endif
-	rts
-	
-prepare_read_data:
-   lda 				#CMD_INIT_READ
-   jmp            write_cmd_reg
+   rts
 
-prepare_write_data: 
-   lda 				#CMD_INIT_WRITE
-   jmp            write_cmd_reg
-   
+prepare_read_data:
+   lda   #CMD_INIT_READ
+   jmp   write_cmd_reg
+
+prepare_write_data:
+   lda   #CMD_INIT_WRITE
+   jmp   write_cmd_reg
+
 .ifdef AVR
 WaitUntilRead:
-	lda		ASTATUS_REG			; Read status reg
-	and		#MMC_MCU_READ		; Been read yet ?
-	bne		WaitUntilRead		; nope keep waiting
-	rts
+   lda   ASTATUS_REG         ; Read status reg
+   and   #MMC_MCU_READ       ; Been read yet ?
+   bne   WaitUntilRead       ; nope keep waiting
+   rts
 
 WaitUntilWritten:
-	lda		ASTATUS_REG			; Read status reg
-	and		#MMC_MCU_WROTE		; Been written yet ?
-	beq		WaitUntilWritten	; nope keep waiting
-	rts
+   lda   ASTATUS_REG         ; Read status reg
+   and   #MMC_MCU_WROTE      ; Been written yet ?
+   beq   WaitUntilWritten    ; nope keep waiting
+   rts
 
 WaitWhileBusy:
-	lda		ASTATUS_REG			; Read status reg
-	and		#MMC_MCU_BUSY		; MCU still busy ?
-	bne		WaitWhileBusy		; yes keep waiting
-	rts
+   lda   ASTATUS_REG         ; Read status reg
+   and   #MMC_MCU_BUSY       ; MCU still busy ?
+   bne   WaitWhileBusy       ; yes keep waiting
+   rts
 .endif
 
 
@@ -132,18 +122,18 @@ WaitWhileBusy:
 ;
 ; on exit y = character count not including terminating 0
 ;
-;	bug: this will keep reading until it hits a 0, if there is not one, it will
-;		 keep going forever......
+;  bug: this will keep reading until it hits a 0, if there is not one, it will
+;      keep going forever......
 getasciizstringto140:
-   jsr				prepare_read_data
+   jsr   prepare_read_data
 
-   ldy  			#$ff
+   ldy   #$ff
 
 @loop:
    iny
-   jsr         read_data_reg
-   sta  			NAME,y
-   bne  			@loop
+   jsr   read_data_reg
+   sta   NAME,y
+   bne   @loop
 
    rts
 
@@ -156,23 +146,18 @@ getasciizstringto140:
 ; (RWPTR) points to store
 ;
 read_data_buffer:
-   jsr	prepare_read_data
+   jsr   prepare_read_data
 
-   ldy  #0
+   ldy   #0
 
 @loop:
-   jsr         read_data_reg
-   sta  (RWPTR),y
+   jsr   read_data_reg
+   sta   (RWPTR),y
    iny
    dex
-   bne @loop
+   bne   @loop
 
    rts
-
-
-
-
-
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -180,14 +165,9 @@ read_data_buffer:
 ; Perform slow command initialisation and expect a return code <= 64
 ;
 expect64orless:
-   cmp  #STATUS_COMPLETE+1
-   bcs  reportDiskFailure
+   cmp   #STATUS_COMPLETE+1
+   bcs   reportDiskFailure
    rts
-
-
-
-
-
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -196,29 +176,23 @@ expect64orless:
 ;
 ifdi:
    jsr   getcb
-   and   #$DF              ; remove bit 6
-   jmp   putcb   
+   and   #$DF                   ; remove bit 5
+   jmp   putcb
 
 ifen:
    jsr   getcb
-   ora   #$20              ; set bit 6
-   jmp   putcb   
-
-
-
+   ora   #$20                   ; set bit 5
+   jmp   putcb
 
 getcb:
-	FASTCMDI		CMD_GET_CFG_BYTE      ; retreive config byte
+   FASTCMDI CMD_GET_CFG_BYTE    ; retreive config byte
    rts
 
-   
 putcb:
-   jsr            write_latch_reg
-   lda   			#CMD_SET_CFG_BYTE      ; write latched val as config byte. irqs are now off
-   jsr            write_cmd_reg
+   jsr   write_latch_reg
+   lda   #CMD_SET_CFG_BYTE      ; write latched val as config byte. irqs are now off
+   jsr   write_cmd_reg
    rts
-
-
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -227,20 +201,20 @@ putcb:
 ;
 reportDiskFailure:
    and   #ERROR_MASK
-   tax                     ; error code into x
-   ldy   #$ff                ; string indexer
+   tax                          ; error code into x
+   ldy   #$ff                   ; string indexer
 
 @findstring:
-   iny                     ; do this here because we need the z flag below
+   iny                          ; do this here because we need the z flag below
    lda   diskerrortab,y
-   bne   @findstring       ; zip along the string till we find a zero
+   bne   @findstring            ; zip along the string till we find a zero
 
-   dex                     ; when this bottoms we've found our error
+   dex                          ; when this bottoms we've found our error
    bne   @findstring
 
 
-   lda   TubeFlag
-   cmp   #TubeEna
+   lda   TUBE_FLAG
+   cmp   #TUBE_ENABLED
    beq   @tubeError
 
 @printstring:
@@ -251,7 +225,7 @@ reportDiskFailure:
    brk
 
 @tubeError:
-   iny                     ; store index for basic BRK-alike hander
+   iny                          ; store index for basic BRK-alike hander
    tya
    clc
    adc   #<diskerrortab
@@ -276,13 +250,13 @@ diskerrortab:
    .byte "INVALID DRIVE",$00
    .byte "NOT ENABLED",$00
    .byte "NO FILESYSTEM",$00
-   .byte $00                     ; mkfs error
+   .byte $00                    ; mkfs error
    .byte "TIMEOUT",$00
    .byte "EEPROM ERROR",$00
    .byte "FAILED",$00
    .byte "TOO MANY",$00
    .byte "SILLY",$0d
-	
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Display the filename at $140
@@ -299,10 +273,10 @@ print_filename:
 
 @test:
    lda   NAME,x
-   cmp   #32              ; end string print if we find char < 32
+   cmp   #32                 ; end string print if we find char < 32
    bcc   @test2
 
-   cpx   #16              ; or x == 16
+   cpx   #16                 ; or x == 16
    bne   @showit
 
    rts
@@ -317,12 +291,6 @@ print_filename:
    bne   @showit2
 
    rts
-
-
-
-
-
-
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -345,11 +313,6 @@ print_fileinfo:
    jsr   HEXOUT
    lda   LLENGTH
    jmp   HEXOUTS
-
-
-
-
-
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -413,24 +376,16 @@ read_filename:
    jmp   COSSYN
 
 
-
-
-
-
-
-
-
-
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; getnexthexval
 ;
-; parse a 1 or 2 digit hex value from $100,y leaving result in A and $cb. 
+; parse a 1 or 2 digit hex value from $100,y leaving result in A and $cb.
 ; C set if error
 ;
 getnexthexval:
-   jsr   $f876       ; get next non-space char from input buffer
-   jsr   $f87e       ; convert to hex nybble
+   jsr   $f876                  ; get next non-space char from input buffer
+   jsr   $f87e                  ; convert to hex nybble
    bcs   @error
 
    sta   $cb
@@ -438,7 +393,7 @@ getnexthexval:
    iny
    lda   $100,y
 
-   jsr   $f87e       ; convert to hex nybble
+   jsr   $f87e                  ; convert to hex nybble
    bcs   @nomore
 
    iny
@@ -456,10 +411,6 @@ getnexthexval:
 @error:
    rts
 
-
-
-
-
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; more
@@ -473,7 +424,7 @@ more:
    jsr   OSRDCH
    pha
 
-   lda   #0                  ; cheesy x-pos reset
+   lda   #0                     ; cheesy x-pos reset
    sta   $e0
    jsr   STROUT
    .byte "             "
@@ -483,10 +434,6 @@ more:
 
    pla
    rts
-
-
-
-
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -511,16 +458,17 @@ tab_space16:
    ldx   #16
    jmp   tab_space
 
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Copy filename from ($c9) to $140
 ;
 copy_name:
-	ldy #0
+   ldy #0
 copy_name_loop:
-	lda ($C9),y
-	sta $140,y
-	iny
-	cmp #$0d
-	bne copy_name_loop
-	rts
+   lda ($C9),y
+   sta $140,y
+   iny
+   cmp #$0d
+   bne copy_name_loop
+   rts

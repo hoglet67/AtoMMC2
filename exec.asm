@@ -5,14 +5,14 @@
 ; Feed bytes from a file to the system as if they were typed.
 ; Highly experimental :)
 ;
-STAREXEC:
+star_exec:
    jsr   read_filename
 
-   jsr	open_file_read
+   jsr   open_file_read
 
-   SETRWPTR NAME     ; get the FAT file size - text files won't have ATM headers
+   SETRWPTR NAME                ; get the FAT file size - text files won't have ATM headers
 
-   SLOWCMDI CMD_FILE_GETINFO	
+   SLOWCMDI CMD_FILE_GETINFO
 
    ldx   #13
    jsr   read_data_buffer
@@ -22,15 +22,14 @@ STAREXEC:
    lda   NAME+1
    sta   RDCLEN+1
 
-   lda   #0         ; indicate there are no bytes in the pipe
+   lda   #0                     ; indicate there are no bytes in the pipe
    sta   RDCCNT
 
-   lda   #<execrdch     ; point OSRDCH at our routine
+   lda   #<execrdch             ; point OSRDCH at our routine
    sta   RDCVEC
    lda   #>execrdch
    sta   RDCVEC+1
    rts
-
 
 ;
 ; pull characters from the file and return these to the OS
@@ -43,23 +42,23 @@ execrdch:
    cld
 
 sinkchar:
-   lda   RDCCNT         ; exhausted our little pool?
+   lda   RDCCNT                 ; exhausted our little pool?
    bne   plentyleft
 
-   lda   RDCLEN+1       ; are there pages left in the file?
+   lda   RDCLEN+1               ; are there pages left in the file?
    bne   @nextread16
-   
-   lda   RDCLEN         ; less than 16 left in the file?
+
+   lda   RDCLEN                 ; less than 16 left in the file?
    cmp   #17
    bcc   @fillpool
 
 @nextread16:
-   lda   #16           ; 16 or more left in the file
+   lda   #16                    ; 16 or more left in the file
 
 @fillpool:
-   sta   RDCCNT         ; pool count
+   sta   RDCCNT                 ; pool count
 
-   lda   RDCLEN         ; file length remaining -= pool count
+   lda   RDCLEN                 ; file length remaining -= pool count
    sec
    sbc   RDCCNT
    sta   RDCLEN
@@ -68,45 +67,43 @@ sinkchar:
    dec   RDCLEN+1
 
 @refillpool:
-   lda   			RDCCNT         		; recover count
-   jsr            write_latch_reg        ; set ammount to read
+   lda   RDCCNT                 ; recover count
+   jsr   write_latch_reg        ; set ammount to read
 
-   SLOWCMDI 		CMD_READ_BYTES		; set command	
-   cmp   			#STATUS_COMPLETE
-   beq   			@allok
+   SLOWCMDI CMD_READ_BYTES      ; set command
+   cmp   #STATUS_COMPLETE
+   beq   @allok
 
    ; error! bail!
 
-   jmp   osrdchcode_unhook    ; eek
+   jmp   osrdchcode_unhook      ; eek
 
 @allok:
-   jsr	prepare_read_data				; get data from pic
+   jsr   prepare_read_data      ; get data from pic
 
 plentyleft:
-   dec   RDCCNT         ; one less in the pool
+   dec   RDCCNT                 ; one less in the pool
    bne   @finally
 
-
-   lda   RDCLEN        ; all done completely?
+   lda   RDCLEN                 ; all done completely?
    ora   RDCLEN+1
    bne   @finally
 
-
-   lda   #$94          ; unhook and avoid trailing 'A' gotcha
+   lda   #$94                   ; unhook and avoid trailing 'A' gotcha
    sta   RDCVEC
    lda   #$fe
    sta   RDCVEC+1
 
-	jsr   read_data_reg   ; get char from PIC/AVR
+   jsr   read_data_reg          ; get char from PIC/AVR
    plp
    rts
 
 
 @finally:
-	jsr   read_data_reg   ; get char from PIC/AVR
+   jsr   read_data_reg          ; get char from PIC/AVR
 
-   cmp   #$0a            ; lose LFs - god this is so ghetto i can't believe i've done it
-   beq   sinkchar     	; this will fubar if the last char in a file is A. which is likely. BEWARE!
+   cmp   #$0a                   ; lose LFs - god this is so ghetto i can't believe i've done it
+   beq   sinkchar               ; this will fubar if the last char in a file is A. which is likely. BEWARE!
 
    plp
    rts

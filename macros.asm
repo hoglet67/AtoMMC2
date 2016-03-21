@@ -1,7 +1,7 @@
-;=================================================================
+;================================================================
 ; macro definitions for AtoMMC
 ; Collected macros from all files into a single file
-;=================================================================
+;================================================================
 ;
 ; 2013-10-09 converted some of the macro calls to jsr calls where
 ; appropriate. -- PHS
@@ -15,43 +15,36 @@
 ; it is more code size efficient to convert it to a subroutine call, that always
 ; uses ACMD_PORT.
 .macro SLOWCMD
-	jsr	SLOWCMD_SUB
+   jsr   SLOWCMD_SUB
 .endmacro
 
 .macro SLOWCMDI command
-	lda	#command
-	SLOWCMD
+   lda   #command
+   SLOWCMD
 .endmacro
 
 ; Fast command, command port write followed by interwrite delay on PIC,
 ; Simply an alias for SLOWCMD on AVR.
 .macro FASTCMD
 .ifndef AVR
-   jsr            write_cmd_reg
-	lda				ACMD_REG
+   jsr   write_cmd_reg
+   lda   ACMD_REG
 .else
-	SLOWCMD
+   SLOWCMD
 .endif
 .endmacro
 
 ; Immediate version of fastcmd
-.macro FASTCMDI	command
-	lda				#command
-	FASTCMD
+.macro FASTCMDI command
+   lda   #command
+   FASTCMD
 .endmacro
-
-
-;.macro PREPPUTTOB407
-;   jsr	PREPPUTTOB407_SUB
-;.endmacro
 
 .macro SETRWPTR addr
-   lda #<addr
-   sta RWPTR
-   lda #>addr
-   sta RWPTR+1
+   lda   #<addr
+   sta   RWPTR
+   lda   #>addr
+   sta   RWPTR+1
 .endmacro
 
-
 ; Subroutines for macros in util.asm
-	

@@ -9,11 +9,10 @@
 ; A set bit in the direction register indicates an 1nput and a clear bit represents
 ; an 0utput.
 ;
-STARPBD:
+star_pbd:
    lda   #CMD_GET_PORT_DDR
    sta   $ce
    jmp   do_cfg_cmd
-
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -25,12 +24,10 @@ STARPBD:
 ; If a port B bit is set as an input, you will read the value present on the port.
 ; If it is an output you will see the last value written to it.
 ;
-STARPBV:
+star_pbv:
    lda   #CMD_READ_PORT
    sta   $ce
    jmp   do_cfg_cmd
-
-
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -44,7 +41,7 @@ STARPBV:
 ;     5 controls whether the interface generates an IRQ on reset. 1 = generate, 0 = don't.
 ;
 
-STARCFG:
+star_cfg:
    lda   #CMD_GET_CFG_BYTE
    sta   $ce
 
@@ -55,27 +52,27 @@ STARCFG:
 ;
 ; It rlies on the set port code having a function code one more than the get port code :
 ;
-; get 				value		set					value
-; CMD_GET_PORT_DDR 	$A0			CMD_SET_PORT_DDR	$A1
-; CMD_READ_PORT		$A2			CMD_WRITE_PORT		$A3
-; CMD_GET_CFG_BYTE	$F0			CMD_SET_CFG_BYTE	$F1
+; get             value    set               value
+; CMD_GET_PORT_DDR   $A0         CMD_SET_PORT_DDR  $A1
+; CMD_READ_PORT      $A2         CMD_WRITE_PORT    $A3
+; CMD_GET_CFG_BYTE   $F0         CMD_SET_CFG_BYTE  $F1
 ;
 
 do_cfg_cmd:
-   ldx   			#$cb             ; scan parameter - print existing val if none
-   jsr   			RDOPTAD
-   bne   			@param1valid
+   ldx   #$cb                   ; scan parameter - print existing val if none
+   jsr   RDOPTAD
+   bne   @param1valid
 
-   lda   			$ce  			; read config register
+   lda   $ce                    ; read config register
    FASTCMD
-   jsr   			HEXOUT
-   jmp   			OSCRLF
+   jsr   HEXOUT
+   jmp   OSCRLF
 
 @param1valid:
-   lda   			$cb				; get read parameter
-   jsr            write_latch_reg  ; latch the value
-   ldx   			$ce             ; Load function code
-   inx								; change get code to put
+   lda   $cb                    ; get read parameter
+   jsr   write_latch_reg        ; latch the value
+   ldx   $ce                    ; Load function code
+   inx                          ; change get code to put
    txa
-   jsr            write_cmd_reg
+   jsr   write_cmd_reg
    rts

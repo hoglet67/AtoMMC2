@@ -1,34 +1,30 @@
 
-;
-; todo - 
-;
-
 .include "atmmc2def.asm"
 
 .include "macros.asm"
 
-.SEGMENT "CODE"
+.segment "CODE"
 
 
 AtoMMC2:
    ; test ctrl - if pressed, don't initialise
    ;
-   bit $b001
-   bvs @initialise
+   bit   $b001
+   bvs   @initialise
 
    ; don't initialise the firmware
-.IFNDEF EOOO
+.ifndef EOOO
    ; - however we got an interrupt so we need to clear it
    ;
-  ; lda   #30               ; as we've had an interrupt we want to wait longer
-  ; sta   CRC               ; for the interface to respond
+   ; lda   #30                  ; as we've had an interrupt we want to wait longer
+   ; sta   CRC                  ; for the interface to respond
    jsr   irqgetcardtype
    pla
    rti
-.ELSE
-   ; the E000 build 
-   jmp   $c2b2             ; set #2900 text space and enter command handler
-.ENDIF
+.else
+   ; the E000 build
+   jmp   $c2b2                  ; set #2900 text space and enter command handler
+.endif
 
 @initialise:
    tya
@@ -40,20 +36,20 @@ AtoMMC2:
 
    ; read card type
    ;
-  ; lda   #7                   ; timeout value, ret when crc == -1
-  ; sta   CRC
+   ; lda   #7                   ; timeout value, ret when crc == -1
+   ; sta   CRC
    jsr   irqgetcardtype
-  ; bit   CRC
-  ; bmi   @unpatched
+   ; bit   CRC
+   ; bmi   @unpatched
 
    tay
 
    ldx   #0
 
-   stx   FKIDX            ; fake key index for OSRDCH patch, just piggybacking
-   stx   TubeFlag         ; @@TUBE@@ disable tube by default
+   stx   FKIDX                  ; fake key index for OSRDCH patch, just piggybacking
+   stx   TUBE_FLAG              ; @@TUBE@@ disable tube by default
 
-   lda   #43              ;'+'
+   lda   #43                    ;'+'
    sta   $800b
 
 @shorttitle:
@@ -64,7 +60,7 @@ AtoMMC2:
    cmp   #$20
    bne   @shorttitle
 
-   bit   $b002            ; is REPT pressed?
+   bit   $b002                  ; is REPT pressed?
    bvs   @quiet
 
    dex
@@ -104,12 +100,12 @@ AtoMMC2:
 ;      1        0    [norm sh, sh pressed]     1
 ;      1        1    [norm sh, sh not pressed] 0
 
-	FASTCMDI	CMD_GET_CFG_BYTE             ; get config byte
-						; 'normal shift' bit is 6
-   asl   a              ;
-   eor   $b001          ;
-   bpl   @unpatched     ;
-   
+   FASTCMDI CMD_GET_CFG_BYTE    ; get config byte
+
+   asl   a                      ; 'normal shift' bit is 6
+   eor   $b001
+   bpl   @unpatched
+
 
 @patchosrdch:
    lda   #<osrdchcode
@@ -123,15 +119,13 @@ AtoMMC2:
    pla
    tay
 
-.IFDEF EOOO
-   jmp   $c2b2             ; set #2900 text space and enter command handler
-.ENDIF
+.ifdef EOOO
+   jmp   $c2b2                  ; set #2900 text space and enter command handler
+.endif
 
 irqveccode:
-   pla                 ; pop the accumulator as saved by the irq handler
+   pla                          ; pop the accumulator as saved by the irq handler
    rti
-
-
 
 ; takes a card type in A
 ; 0 = no card
@@ -140,21 +134,17 @@ irqveccode:
 ; etc etc
 ;
 bittoindex:
-   ora   #8             ; bit 3 -- 'no card available' - to ensure we stop 
+   ora   #8                     ; bit 3 -- 'no card available' - to ensure we stop
    sta   ZPTW
 
-   lda   #$fc           ; spot the bit
+   lda   #$fc                   ; spot the bit
    clc
 @add:
    adc   #4
    lsr   ZPTW
    bcc   @add
-
    tax
    rts
-
-
-
 
 installhooks2:
    ldx   #0
@@ -166,10 +156,10 @@ installhooks2:
    cpx   #16
    bne   @announce
 
-.IFNDEF EOOO
-   jsr   ifen           ; interface enable interrupt, if at A000
-.ENDIF
-   
+.ifndef EOOO
+   jsr   ifen                   ; interface enable interrupt, if at A000
+.endif
+
 ; install hooks. 6 vectors, 12 bytes
 ;
 ; !!! this is all you need to call if you're not using IRQs !!!
@@ -182,12 +172,7 @@ installhooks:
    sta   IRQVEC,x
    dex
    bpl   @initvectors
-
    rts
-
-
-
-
 
 ;igct_delay:
 ;   ldx   0
@@ -204,29 +189,22 @@ installhooks:
 irqgetcardtype:
    ; await the 0xaa,0x55,0xaa... sequence which shows that the interface
    ; is initialised and responding
-   ;
-	FASTCMDI 	CMD_GET_HEARTBEAT
+
+   FASTCMDI CMD_GET_HEARTBEAT
    cmp   #$aa
    bne   irqgetcardtype
 
 irqgetcardtype2:
-	FASTCMDI 	CMD_GET_HEARTBEAT
+   FASTCMDI CMD_GET_HEARTBEAT
    cmp   #$55
    bne   irqgetcardtype
 
    ; send read card type command - this also de-asserts the interrupt
 
-   SLOWCMDI 	CMD_GET_CARD_TYPE
+   SLOWCMDI CMD_GET_CARD_TYPE
 
-   
 igct_quit:
    rts
-
-
-
-
-
-
 
 ; patched os input function
 ;
@@ -240,10 +218,10 @@ osrdchcode:
    cld
    stx   $e4
    sty   $e5
-	
+
    ldx   FKIDX
    lda   fakekeys,x
-   cmp	#$0d
+   cmp   #$0d
    beq   @unpatch
 
    inx
@@ -257,27 +235,20 @@ osrdchcode:
 @unpatch:
    ; restore OSRDCH, continue on to read a char
    ;
- ;  ldx   $e4
- ;  ldy   $e5
+   ; ldx   $e4
+   ; ldy   $e5
 
 osrdchcode_unhook:
    lda   #$94
    sta   RDCVEC
    lda   #$fe
    sta   RDCVEC+1
-   
-;   plp
-   lda 	#$0d
+
+   ; plp
+   lda   #$0d
    pha
-   jmp 	$fe5c
-;   jmp   (RDCVEC)
-
-
-
-
-
-
-
+   jmp   $fe5c
+   ; jmp   (RDCVEC)
 
 ; Kees Van Oss' version of the CLI interpreter
 ;
@@ -287,77 +258,70 @@ osclicode:
 ; STAR-COMMAND INTERPRETER
 ;=================================================================
 star_com:
-   LDX   #$ff             ; Set up pointers
-   CLD
+   ldx   #$ff                   ; set up pointers
+   cld
 star_com1:
-   LDY   #0
-   JSR   SKIPSPC
-   DEY
+   ldy   #0
+   jsr   SKIPSPC
+   dey
 star_com2:
-   INY
-   INX
+   iny
+   inx
 
 star_com3:
-   LDA   com_tab,X        ; Look up star-command
-   BMI   star_com5
-   CMP   $100,Y
-   BEQ   star_com2
-   DEX
+   lda   com_tab,x              ; look up star-command
+   bmi   star_com5
+   cmp   $100,y
+   beq   star_com2
+   dex
 star_com4:
-   INX
-   LDA   com_tab,X
-   BPL   star_com4
-   INX
-   LDA   $100,Y
-   CMP   #46                 ; '.'
-   BNE   star_com1
-   INY
-   DEX
-   BCS   star_com3
+   inx
+   lda   com_tab,x
+   bpl   star_com4
+   inx
+   lda   $100,y
+   cmp   #46                    ; '.'
+   bne   star_com1
+   iny
+   dex
+   bcs   star_com3
 
 star_com5:
-   STY   $9a
+   sty   $9a
 
-   LDY   $3             ; Save command pointers
-   STY   tmp_ptr3
-   LDY   $5
-   STY   tmp_ptr5
-   LDY   $6
-   STY   tmp_ptr6
-   LDY    #<$100
-   STY    $5
-   LDY    #>$100
-   STY   $6
-   LDY   $9a
-   STY   $3
+   ldy   $3                     ; save command pointers
+   sty   tmp_ptr3
+   ldy   $5
+   sty   tmp_ptr5
+   ldy   $6
+   sty   tmp_ptr6
+   ldy   #<$100
+   sty   $5
+   ldy   #>$100
+   sty   $6
+   ldy   $9a
+   sty   $3
 
-   STA   $53            ; Execute star command
-   LDA   com_tab+1,X
-   STA   $52
+   sta   $53                    ; execute star command
+   lda   com_tab+1,x
+   sta   $52
    ldx   #0
-   JSR   comint6
+   jsr   comint6
 
-   LDY   tmp_ptr5         ; Restore command pointers
-   STY   $5
-   LDY   tmp_ptr6
-   STY   $6
-   LDY   tmp_ptr3
-   STY   $3
+   ldy   tmp_ptr5               ; restore command pointers
+   sty   $5
+   ldy   tmp_ptr6
+   sty   $6
+   ldy   tmp_ptr3
+   sty   $3
 
-   LDA   #$0D
-   STA   ($5),Y
+   lda   #$0d
+   sta   ($5),y
 
-   RTS 
+   rts
 
 comint6:
-   JMP   ($0052)
-
-
-
-
-
-
-
+   jmp   ($0052)
 
 .include "cat.asm"
 .include "cwd.asm"
@@ -370,74 +334,72 @@ comint6:
 .include "info.asm"
 .include "load.asm"
 .include "run.asm"
-;.include "urom.asm"
 .include "save.asm"
 .include "file.asm"
 .include "util.asm"
 .include "chain.asm"
 .include "raf.asm"
 .include "tube.asm"
-
-
-
+        
+;.include "urom.asm"
 
 cardtypes:
    .byte " MMC  SDSDHC N/A"
    ;      1111222244448888
 
 fullvecdat:
-   .word irqveccode	; 204 IRQVEC
-   .word osclicode	; 206 COMVEC
-   .word $fe52		; 208 WRCVEC
-   .word $fe94		; 20A RDCVEC
-   .word osloadcode	; 20C LODVEC
-   .word ossavecode	; 20E SAVVEC
- 
+   .word irqveccode             ; 204 IRQVEC
+   .word osclicode              ; 206 COMVEC
+   .word $fe52                  ; 208 WRCVEC
+   .word $fe94                  ; 20A RDCVEC
+   .word osloadcode             ; 20C LODVEC
+   .word ossavecode             ; 20E SAVVEC
+
 rafvecdat:
-   .word osrdarcode	; 210 RDRVEC
-   .word osstarcode	; 212 STRVEC
-   .word osbgetcode	; 214 BGTVEC
-   .word osbputcode	; 216 BPTVEC
-   .word osfindcode	; 218 FNDVEC
-   .word osshutcode	; 21A SHTVEC
+   .word osrdarcode             ; 210 RDRVEC
+   .word osstarcode             ; 212 STRVEC
+   .word osbgetcode             ; 214 BGTVEC
+   .word osbputcode             ; 216 BPTVEC
+   .word osfindcode             ; 218 FNDVEC
+   .word osshutcode             ; 21A SHTVEC
 
 fakekeys:
    .byte "*MENU"
    .byte $0d,0
 
 com_tab:
-   .byte "CAT"
-   FNADDR STARCAT
+   .byte "CAT"                  ; in cat.asm
+   FNADDR star_cat
 
-   .byte "CWD"
-   FNADDR STARCWD
+   .byte "CWD"                  ; in cwd.asm
+   FNADDR star_cwd
 
-   .byte "DELETE"
-   FNADDR STARDELETE
+   .byte "DELETE"               ; in delete.asm
+   FNADDR star_delete
 
-   .byte "EXEC"
-   FNADDR STAREXEC
+   .byte "EXEC"                 ; in exec.asm
+   FNADDR star_exec
 
-   .byte "RUN"          ; in exec.asm
-   FNADDR STARRUN
+   .byte "RUN"                  ; in exec.asm
+   FNADDR star_run
 
-   .byte "HELP"
-   FNADDR STARHELP
+   .byte "HELP"                 ; in help.asm
+   FNADDR star_help
 
-   .byte "INFO"
-   FNADDR STARINFO
+   .byte "INFO"                 ; in info.asm
+   FNADDR star_info
 
-   .byte "LOAD"
-   FNADDR STARLOAD
+   .byte "LOAD"                 ; in load.asm
+   FNADDR star_load
 
-;   .byte "RLOAD"        ; in load.asm
-;   FNADDR STARRLOAD
+;  .byte "RLOAD"                ; in load.asm
+;  FNADDR star_rload
 
-;   .byte "ROMLOAD"      ; in load.asm
-;   FNADDR STARROMLOAD
+;  .byte "ROMLOAD"              ; in load.asm
+;  FNADDR star_romload
 
-;   .byte "UROM"
-;   FNADDR STARUROM
+;  .byte "UROM"                 ; in urom.asm
+;  FNADDR star_urom
 
    .byte "MON"
    FNADDR $fa1a
@@ -445,33 +407,33 @@ com_tab:
    .byte "NOMON"
    FNADDR $fa19
 
-   .byte "CFG"
-   FNADDR STARCFG
+   .byte "CFG"                  ; in cfg.asm
+   FNADDR star_cfg
 
-   .byte "PBD"          ; in cfg.asm
-   FNADDR STARPBD
+   .byte "PBD"                  ; in cfg.asm
+   FNADDR star_pbd
 
-   .byte "PBV"          ; in cfg.asm
-   FNADDR STARPBV
+   .byte "PBV"                  ; in cfg.asm
+   FNADDR star_pbv
 
-   .byte "SAVE"
-   FNADDR STARSAVE
+   .byte "SAVE"                 ; in save.asm
+   FNADDR star_save
 
-   .byte "FATINFO"
-   FNADDR STARFATINFO
+   .byte "FATINFO"              ; in fatinfo.asm
+   FNADDR star_fatinfo
 
-   .byte "CRC"
-   FNADDR STARCRC
+   .byte "CRC"                  ; in crc.asm
+   FNADDR star_crc
 
-   .byte "CHAIN"
-   FNADDR STARCHAIN
+   .byte "CHAIN"                ; in chain.asm
+   FNADDR star_chain
 
-   FNADDR STARARBITRARY
+   FNADDR star_arbitrary
 
 
-.IFDEF EOOO
+.ifdef EOOO
 .include "BRAN.asm"
-.ENDIF
+.endif
 
 .SEGMENT "WRMSTRT"
 
@@ -483,11 +445,11 @@ warmstart:
 
 version:
    .byte "ATOMMC2 V3.??"
-.IFNDEF EOOO
+.ifndef EOOO
    .byte "A"
-.ELSE
+.else
    .byte "E"
-.ENDIF
+.endif
    .byte $0d,$0a
    .byte " (C) 2008-2015  "
    .byte "CHARLIE ROBSON. "

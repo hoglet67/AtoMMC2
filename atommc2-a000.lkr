@@ -1,7 +1,7 @@
 MEMORY
 {
    ROM1:  start = $A000, size = $FCC, fill = yes, fillval = $ff;
-   ROM4:  start = $AFCC, size = $4, fill = yes, fillval = $ff;
+   ROM4:  start = $AFCC, size = $4,   fill = yes, fillval = $ff;
    ROM5:  start = $AFD0, size = $30;
 }
 

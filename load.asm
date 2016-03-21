@@ -5,13 +5,10 @@
 ; Loads specified file to memory. If reload address is specified then this will be
 ; used in preference to the reload address stored in the file's metadata.
 ;
-STARLOAD:
-    jsr  read_filename       ; copy filename into $140
-    jsr  $f844               ; set $c9\a = $140, set x = $c9
-    jmp  $f95b               ; *LOAD+3
-
-
-
+star_load:
+   jsr   read_filename          ; copy filename into $140
+   jsr   $f844                  ; set $c9\a = $140, set x = $c9
+   jmp   $f95b                  ; *LOAD+3
 
 
 ; LODVEC entry point
@@ -23,31 +20,31 @@ STARLOAD:
 ; 4,x  if bit 7 is clear, then the file's own start address is to be used
 ;
 osloadcode:
-    ; transfer control block to $c9 (LFNPTR) onward and check name
-    ;
-    jsr  CHKNAME
-    jsr	copy_name
-    jsr	open_file_read
-    jsr  read_info
+   ; transfer control block to $c9 (LFNPTR) onward and check name
+   ;
+   jsr  CHKNAME
+   jsr  copy_name
+   jsr  open_file_read
+   jsr  read_info
 
-    ; @@TUBE@@ 
-    ; Test if the tube is enabled, then claim and initiate transfer
-    ldx #LLOAD               ; block containing transfer address
-    ldy #1                   ; transfer type
-    jsr tube_claim_wrapper
+   ; @@TUBE@@
+   ; Test if the tube is enabled, then claim and initiate transfer
+   ldx   #LLOAD                 ; block containing transfer address
+   ldy   #1                     ; transfer type
+   jsr   tube_claim_wrapper
 
-    bit  MONFLAG             ; 0 = mon, ff = nomon
-    bmi  @noprint
+   bit   MONFLAG                ; 0 = mon, ff = nomon
+   bmi   @noprint
 
-    jsr  print_fileinfo
-    jsr  OSCRLF
+   jsr   print_fileinfo
+   jsr   OSCRLF
 
 @noprint:
-    jsr read_file
+   jsr   read_file
 
-    ; @@TUBE@@ 
-    ; Test if the tube is enabled, then release
-    jmp tube_release_wrapper
+   ; @@TUBE@@
+   ; Test if the tube is enabled, then release
+   jmp   tube_release_wrapper
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -57,47 +54,47 @@ osloadcode:
 ; Load specified file to memory starting at the specified address. The file's FAT
 ; file system length is used, and any ATM metadata is read as part of the file.
 ;
-;STARRLOAD:
-;   jsr   read_filename        ; copy filename into $140
-;   jsr   $f844                ; set $c9\a = $140, set x = $c9
+;star_rload:
+;  jsr   read_filename          ; copy filename into $140
+;  jsr   $f844                  ; set $c9\a = $140, set x = $c9
 ;
-;   ldx   #$cb                 ; Point to the vector at #CB, #CC
-;   jsr   RDOPTAD              ; ..and interpret the load address to store it here
-;   beq   rlerr                ; ..can't interpret load address - error
+;  ldx   #$cb                   ; Point to the vector at #CB, #CC
+;  jsr   RDOPTAD                ; ..and interpret the load address to store it here
+;  beq   rlerr                  ; ..can't interpret load address - error
 ;
-;   jsr   COSPOST              ; Do COS interpreter post test
-;   ldx   #$c9                 ; File data starts at #C9
+;  jsr   COSPOST                ; Do COS interpreter post test
+;  ldx   #$c9                   ; File data starts at #C9
 ;
-;   jsr   CHKNAME
-;   jsr	open_file_read
+;  jsr   CHKNAME
+;  jsr  open_file_read
 ;
-;   SETRWPTR NAME              ; get the FAT file size - ignore any ATM headers
+;  SETRWPTR NAME                ; get the FAT file size - ignore any ATM headers
 ;
-;   SLOWCMDI 	CMD_FILE_GETINFO
+;  SLOWCMDI   CMD_FILE_GETINFO
 ;
-;   ldx   #13
-;   jsr   read_data_buffer 
+;  ldx   #13
+;  jsr   read_data_buffer
 ;
-;   lda   NAME                 ; fat file length
-;   sta   LLENGTH
-;   lda   NAME+1
-;   sta   LLENGTH+1
+;  lda   NAME                   ; fat file length
+;  sta   LLENGTH
+;  lda   NAME+1
+;  sta   LLENGTH+1
 ;
-;   jmp   read_file
+;  jmp   read_file
 ;
 ;rlerr:
-;   jmp   COSSYN
+;  jmp   COSSYN
 ;
 ;
 ;nomemerr:
-;   REPERROR noramstr
-;     
+;  REPERROR noramstr
+;
 ;
 ;noramstr:
-;   .byte "NO RAM"
-;   nop
-
-
+;  .byte "NO RAM"
+;  nop
+;
+;
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; *ROMLOAD [filename]
@@ -107,45 +104,44 @@ osloadcode:
 ; there. Sets utility ROM to bank 0 (redundant, possibly) pages $70 to $a0 and
 ; waits for break.
 ;
-STARROMLOAD:
-;   lda   $bffd                ; map $7000-$7fff to $7000 - needs ramrom with latest CPLD code
-;   and   #$fe
-
-;   lda #0
+;star_romload:
+;  lda   $bffd                  ; map $7000-$7fff to $7000 - needs ramrom with latest CPLD code
+;  and   #$fe
 ;
-;   sta   $bffe                ; ensure there's RAM at 7000
- ;  ora   #1                   ; for 'selectrom' code later
- ;  sta   $cc
+;  lda #0
 ;
-;   lda   #$55
-;   sta   $7000
-;   cmp   $7000
-;   bne   nomemerr
-;   asl   a
-;   sta   $7000
-;   cmp   $7000
-;   bne   nomemerr
+;  sta   $bffe                  ; ensure there's RAM at 7000
+;  ora   #1                     ; for 'selectrom' code later
+;  sta   $cc
 ;
-;   jsr   read_filename        ; copy filename into $140
-;   jsr   $f844                ; set $c9\a = $140, set x = $c9
+;  lda   #$55
+;  sta   $7000
+;  cmp   $7000
+;  bne   nomemerr
+;  asl   a
+;  sta   $7000
+;  cmp   $7000
+;  bne   nomemerr
 ;
-;   jsr   CHKNAME
-;   jsr	open_file_read
+;  jsr   read_filename          ; copy filename into $140
+;  jsr   $f844                  ; set $c9\a = $140, set x = $c9
+;  ;jsr   CHKNAME
+;  jsr   open_file_read
 ;
-;   lda   #0
-;   sta   LLOAD
-;   sta   LLENGTH
+;  lda   #0
+;  sta   LLOAD
+;  sta   LLENGTH
 ;
-;   sta   $cb
+;  sta   $cb
 ;
-;   lda   #$10
-;   sta   LLENGTH+1
-;   lda   #$70
-;   sta   LLOAD+1
+;  lda   #$10
+;  sta   LLENGTH+1
+;  lda   #$70
+;  sta   LLOAD+1
 ;
-;   jsr   read_file
+;  jsr   read_file
 ;
-   ; cb = rom num for bfff
-   ; cc = option latch at bffe
-   ;
-;   jmp   selectrom
+;  ; cb = rom num for bfff
+;  ; cc = option latch at bffe
+;  ;
+;  jmp   selectrom

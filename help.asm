@@ -4,7 +4,7 @@
 ;
 ; Shows some info
 ;
-STARHELP:
+star_help:
 
    ldx   #0
 
@@ -21,26 +21,24 @@ STARHELP:
    .byte "INTERFACE F/W VERSION "
    nop
 
-	FASTCMDI		CMD_GET_FW_VER
-   jsr   			ndotn
-   jsr   			OSCRLF
-
+   FASTCMDI CMD_GET_FW_VER
+   jsr   ndotn
+   jsr   OSCRLF
 
    jsr   STROUT
    .byte "BOOTLOADER VERSION "
    nop
 
-	FASTCMDI		CMD_GET_BL_VER
-   jsr   			ndotn
-   jsr   			OSCRLF
+   FASTCMDI CMD_GET_BL_VER
+   jsr   ndotn
+   jsr   OSCRLF
 
    ; read and display card type
    ;
    jsr   STROUT
    .byte "CARD TYPE: "
    nop
-;   lda   #CMD_GET_CARD_TYPE
-   SLOWCMDI 		CMD_GET_CARD_TYPE
+   SLOWCMDI CMD_GET_CARD_TYPE
 
    jsr   bittoindex
    ldy   #4
@@ -56,8 +54,6 @@ STARHELP:
    bne   @sctloop
 
    jmp   OSCRLF
- 
-
 
 ndotn:
    pha
@@ -65,8 +61,8 @@ ndotn:
    lsr   a
    lsr   a
    lsr   a
-   jsr   $f80b             ; print major version
+   jsr   $f80b                  ; print major version
    lda   #'.'
    jsr   OSWRCH
    pla
-   jmp   $f80b             ; print minor version
+   jmp   $f80b                  ; print minor version
