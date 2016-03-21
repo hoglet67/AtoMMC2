@@ -451,7 +451,7 @@ version:
    .byte "E"
 .endif
    .byte $0d,$0a
-   .byte " (C) 2008-2015  "
+   .byte " (C) 2008-2016  "
    .byte "CHARLIE ROBSON. "
 
    .end
