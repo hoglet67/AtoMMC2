@@ -224,7 +224,6 @@ osrdchcode:
 
    ldx   FKIDX
    lda   fakekeys,x
-   cmp   #$0d
    beq   @unpatch
 
    inx
@@ -368,7 +367,7 @@ rafvecdat:
 
 fakekeys:
    .byte "*MENU"
-   .byte $0d,0
+   .byte 0
 
 com_tab:
    .byte "CAT"                  ; in cat.asm
