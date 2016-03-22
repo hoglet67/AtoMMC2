@@ -72,15 +72,4 @@ Improved hex printing in *FATINFO, saving 10 bytes, 0971
 
 Used SPCOUT ($f7fd) in a couple of places, saving 4 bytes, 096D
 
-----------------------------------------
-
-Possible optimizations:
-
-in-line getasciizstringto140 into cat.asm and combine with OSWRCH
-loop. Actually, not possible without dropping hidden attribute.
-
-in util.asm print_fileinfo (currently 19 bytes) could be reduced to 11 bytes:
-   ldx   #LLOAD
-   jsr   $f7ee
-   jsr   $f7f1
-   jmp   OSCRLF
+Rewrote print_fileinfo using some Atom OS subroutines, saving 8 bytes, 0965

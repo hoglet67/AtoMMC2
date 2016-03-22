@@ -446,16 +446,9 @@ copy_name_loop:
 ; Shows load, exec, length
 ;
 print_fileinfo:
-   ldx   #($100-6)
-        
-@infoloop:
-   lda   LLOAD + 7, x           ; this relies on ZP, X addresses wrapping within page zer0
-   jsr   HEXOUT
-   lda   LLOAD + 6, x
-   jsr   HEXOUTS
-   inx
-   inx
-   bne   @infoloop
+   ldx   #LLOAD
+   jsr   HEXOUT4                ; $f7ee print 4 bytes in hex, incrementing X
+   jsr   HEXOUT2                ; $f7f1 print 2 bytes in hex, incrementing X
    jmp   OSCRLF
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
