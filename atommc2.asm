@@ -100,7 +100,8 @@ AtoMMC2:
 ;      1        0    [norm sh, sh pressed]     1
 ;      1        1    [norm sh, sh not pressed] 0
 
-   FASTCMDI CMD_GET_CFG_BYTE    ; get config byte
+   lda   #CMD_GET_CFG_BYTE      ; get config byte
+   jsr   fast_cmd
 
    asl   a                      ; 'normal shift' bit is 6
    eor   $b001
@@ -195,12 +196,14 @@ irqgetcardtype:
    ; await the 0xaa,0x55,0xaa... sequence which shows that the interface
    ; is initialised and responding
 
-   FASTCMDI CMD_GET_HEARTBEAT
+   lda   #CMD_GET_HEARTBEAT
+   jsr   fast_cmd
    cmp   #$aa
    bne   irqgetcardtype
 
 irqgetcardtype2:
-   FASTCMDI CMD_GET_HEARTBEAT
+   lda   #CMD_GET_HEARTBEAT
+   jsr   fast_cmd
    cmp   #$55
    bne   irqgetcardtype
 

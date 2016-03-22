@@ -13,14 +13,16 @@ star_help:
    .byte 10, 13, "INTERFACE F/W VERSION "
    nop
 
-   FASTCMDI CMD_GET_FW_VER
+   lda   #CMD_GET_FW_VER
+   jsr   fast_cmd
    jsr   ndotn
 
    jsr   STROUT
    .byte 10, 13, "BOOTLOADER VERSION "
    nop
 
-   FASTCMDI CMD_GET_BL_VER
+   lda   #CMD_GET_BL_VER
+   jsr   fast_cmd
    jsr   ndotn
 
    ; read and display card type

@@ -32,9 +32,7 @@ Minor RAF optimizations, 0AC6
 
 Remove SLOWCMD macros, merge expect64orless where possible, 0AB0
 
-Possible patten to factor out:
-   SLOWCMDI xxxx
-   jsr   expect64orless
+Remove FASTCMD macros, 0AA1
 
 Possible patten to factor out:
    jsr   read_filename

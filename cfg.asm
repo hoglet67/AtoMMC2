@@ -64,7 +64,7 @@ do_cfg_cmd:
    bne   @param1valid
 
    lda   $ce                    ; read config register
-   FASTCMD
+   jsr   fast_cmd
    jsr   HEXOUT
    jmp   OSCRLF
 

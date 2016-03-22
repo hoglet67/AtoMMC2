@@ -67,7 +67,26 @@ data_read_delay:
    rts
 .endif
 
-; subroutines for macros in macro.inc
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Fast command
+; - On the PIC, command port write followed by interwrite delay
+; - On the AVR, this is the same as slow_cmd
+
+fast_cmd:
+.ifndef AVR
+   jsr   write_cmd_reg
+   lda   ACMD_REG
+   rts
+.else
+   ; fall through to slow_cmd 
+.endif
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Fast command, command port write followed by interwrite delay on PIC,
+; Simply an alias for "jsr slow_cmd" on AVR.
+
 slow_cmd:
    jsr   write_cmd_reg
 
@@ -80,7 +99,7 @@ slow_cmd_delay_loop:
    bne   slow_cmd_delay_loop
 
    lda   ACMD_REG
-   bmi   slow_cmd_loop
+   bmi   slow_cmd_loop       ; loop until command done bit (bit 7) is cleared
 .else
    jsr   WaitWhileBusy       ; Keep waiting until not busy
    lda   ACMD_REG            ; get status for client
@@ -188,8 +207,8 @@ ifen:
    jmp   putcb
 
 getcb:
-   FASTCMDI CMD_GET_CFG_BYTE    ; retreive config byte
-   rts
+   lda   #CMD_GET_CFG_BYTE      ; retreive config byte
+   jmp   fast_cmd
 
 putcb:
    jsr   write_latch_reg
