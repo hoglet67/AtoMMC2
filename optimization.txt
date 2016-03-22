@@ -58,3 +58,5 @@ Removed obsolete filter code in *CAT, 09A3
 
 A few bytes saved in *CFG, *PBD, *PBV, 099F
 
+Another 6 bytes saved in *CAT. 0999
+

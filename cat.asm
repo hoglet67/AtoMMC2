@@ -12,7 +12,7 @@
 star_cat:
 
    jsr   read_optional_filename ; do we have a filter/path?
-        
+
    jsr   send_name
 
    lda   #CMD_DIR_OPEN          ; open directory
@@ -23,24 +23,20 @@ get_next_loop:
    jsr   slow_cmd_and_check     ; invokes error handler if return code > 64
 
    cmp   #STATUS_COMPLETE       ; all done
-   bne   @printit
+   beq   @return
 
-   rts
-
-@printit:
    jsr   getasciizstringto140   ; a = 0 on exit
 
    jsr   read_data_reg          ; get attribute byte
    and   #2                     ; hidden?
    bne   @pause
 
-   lda   NAME                   ; pre-load 1st char of name
-   ldy   #0    
-        
+   ldy   #$ff
+
 @printloop:
-   jsr   OSWRCH
    iny
    lda   NAME,y                 ; get next char of filename
+   jsr   OSWRCH                 ; Z flags is preserved by OSWRCH, and printing 0 is harmless
    bne   @printloop
 
    jsr   OSCRLF
@@ -55,6 +51,5 @@ get_next_loop:
    bvc   @pause                 ; stick here if ctrl pressed
    bne   get_next_loop          ; loop back if escape not pressed
 
-   jmp   OSCRLF
-
-
+@return:
+   rts
