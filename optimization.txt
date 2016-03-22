@@ -70,6 +70,8 @@ Pushed CHKNAME into copy_name, 097B
 
 Improved hex printing in *FATINFO, saving 10 bytes, 0971
 
+Used SPCOUT ($f7fd) in a couple of places, saving 4 bytes, 096D
+
 ----------------------------------------
 
 Possible optimizations:

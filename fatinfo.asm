@@ -34,5 +34,4 @@ hexdword:
    dex
    dey
    bne   @loop
-   lda   #32
-   jmp   OSWRCH
+   jmp   SPCOUT

@@ -340,8 +340,7 @@ print_filename:
    rts
 
 @showit2:
-   lda   #32
-   jsr   OSWRCH
+   jsr   SPCOUT
    inx
 
 @test2:

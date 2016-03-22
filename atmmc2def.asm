@@ -67,6 +67,7 @@ WSXFER2    =$f85C
 COPYNAME   =$f818
 HEXOUT     =$f802
 HEXOUTS    =$f7fa
+SPCOUT     =$f7fd
 STROUT     =$f7d1
 
 ; I/O register base
