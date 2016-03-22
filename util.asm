@@ -348,26 +348,8 @@ print_filename:
    cpx   #16
    bne   @showit2
 
+filename_ok:
    rts
-
-;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
-;
-; Display file info
-;
-; Shows load, exec, length
-;
-print_fileinfo:
-   ldx   #($100-6)
-        
-@infoloop:
-   lda   LLOAD + 7, x           ; this relies on ZP, X addresses wrapping within page zer0
-   jsr   HEXOUT
-   lda   LLOAD + 6, x
-   jsr   HEXOUTS
-   inx
-   inx
-   bne   @infoloop
-   jmp   OSCRLF
         
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -375,9 +357,27 @@ print_fileinfo:
 ;
 ; Input  $9A = pointer just after command
 ;
-; Output $140 contains filename
+; Output $140 contains filename, terminated by $0D
 ;
 read_filename:
+   jsr   read_optional_filename
+
+   cpx   #0                     ; chec the filename length > 0 
+   bne   filename_ok
+
+syn_error:
+   jmp   COSSYN                 ; generate a SYN? ERROR 135
+
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Read Optional filename from $100 to $140
+;
+; Input  $9A = pointer just after command
+;
+; Output $140 contains filename, terminated by $0D
+;
+read_optional_filename:
    ldx   #0
    ldy   $9a
 
@@ -400,17 +400,13 @@ read_filename:
 @filename3:
    lda   #$0d
    sta   NAME,x
-
-   cpx   #0
-   beq   @filename6
-
    rts
 
 @filename5:
    iny
    lda   $100,y
    cmp   #$0d
-   beq   @filename6
+   beq   syn_error
 
    sta   NAME,x
    inx
@@ -426,10 +422,6 @@ read_filename:
    inx
    bcs   @filename5
 
-@filename6:
-   jmp   COSSYN
-
-
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Copy filename from ($c9) to $140
@@ -439,12 +431,31 @@ copy_name:
 
 copy_name_loop:
    lda   ($C9),y
-   sta   $140,y
+   sta   NAME,y
    iny
    cmp   #$0d
    bne   copy_name_loop
 
    rts
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Display file info
+;
+; Shows load, exec, length
+;
+print_fileinfo:
+   ldx   #($100-6)
+        
+@infoloop:
+   lda   LLOAD + 7, x           ; this relies on ZP, X addresses wrapping within page zer0
+   jsr   HEXOUT
+   lda   LLOAD + 6, x
+   jsr   HEXOUTS
+   inx
+   inx
+   bne   @infoloop
+   jmp   OSCRLF
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
