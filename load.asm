@@ -22,10 +22,10 @@ star_load:
 osloadcode:
    ; transfer control block to $c9 (LFNPTR) onward and check name
    ;
-   jsr  CHKNAME
-   jsr  copy_name
-   jsr  open_file_read          ; invokes error handler if return code > 64
-   jsr  read_info
+   jsr   CHKNAME
+   jsr   copy_name
+   jsr   open_file_read         ; invokes error handler if return code > 64
+   jsr   read_info
 
    ; @@TUBE@@
    ; Test if the tube is enabled, then claim and initiate transfer
