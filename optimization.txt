@@ -40,6 +40,8 @@ Optimise away another rts, 0A9C
 
 Exclude some interrupt code in util from the E000 build, 0A7F
 
+Recoded print_fileinfo, 0A71
+
 Possible patten to factor out:
    jsr   read_filename
    jsr   open_file_read

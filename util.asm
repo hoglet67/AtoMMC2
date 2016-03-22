@@ -326,22 +326,18 @@ print_filename:
 ; Shows load, exec, length
 ;
 print_fileinfo:
-   lda   LLOAD+1
+   ldx   #($100-6)
+        
+@infoloop:
+   lda   LLOAD + 7, x           ; this relies on ZP, X addresses wrapping within page zer0
    jsr   HEXOUT
-   lda   LLOAD
+   lda   LLOAD + 6, x
    jsr   HEXOUTS
-
-   lda   LEXEC+1
-   jsr   HEXOUT
-   lda   LEXEC
-   jsr   HEXOUTS
-
-   lda   LLENGTH+1
-   jsr   HEXOUT
-   lda   LLENGTH
-   jsr   HEXOUTS
+   inx
+   inx
+   bne   @infoloop
    jmp   OSCRLF
-
+        
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Read filename from $100 to $140
