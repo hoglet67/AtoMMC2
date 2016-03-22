@@ -1,4 +1,16 @@
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+; "Init" commands that are used in several places
+; TODO: Check these really don't need any delay / handshaking....
+
+prepare_read_data:
+   lda   #CMD_INIT_READ
+   bne   write_cmd_reg
+
+prepare_write_data:
+   lda   #CMD_INIT_WRITE
+   ; fall through to write_cmd_reg
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ; Write command + wait
 
 write_cmd_reg:
@@ -105,14 +117,6 @@ slow_cmd_delay_loop:
    lda   ACMD_REG            ; get status for client
 .endif
    rts
-
-prepare_read_data:
-   lda   #CMD_INIT_READ
-   jmp   write_cmd_reg
-
-prepare_write_data:
-   lda   #CMD_INIT_WRITE
-   jmp   write_cmd_reg
 
 .ifdef AVR
 WaitUntilRead:

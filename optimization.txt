@@ -34,6 +34,8 @@ Remove SLOWCMD macros, merge expect64orless where possible, 0AB0
 
 Remove FASTCMD macros, 0AA1
 
+Move prepare_xxx_data commands to save a few bytes, 0A9D
+
 Possible patten to factor out:
    jsr   read_filename
    jsr   open_file_read
