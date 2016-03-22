@@ -164,6 +164,7 @@ getasciizstringto140:
 ;
 ; Disable/Enable interface IRQ
 ;
+.ifndef EOOO        
 ifdi:
    jsr   getcb
    and   #$DF                   ; remove bit 5
@@ -182,7 +183,7 @@ putcb:
    jsr   write_latch_reg
    lda   #CMD_SET_CFG_BYTE      ; write latched val as config byte. irqs are now off
    jmp   write_cmd_reg
-
+.endif
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
