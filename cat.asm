@@ -13,7 +13,7 @@ star_cat:
 
    jsr   read_optional_filename ; do we have a filter/path?
 
-   jsr   send_name
+   jsr   send_name              ; put string at $140 to interface
 
    lda   #CMD_DIR_OPEN          ; open directory
    jsr   slow_cmd_and_check     ; invokes error handler if return code > 64
