@@ -22,7 +22,8 @@ star_load:
 osloadcode:
    ; transfer control block to $c9 (LFNPTR) onward and check name
    ;
-   jsr   CHKNAME
+   jsr   CHKNAME                ; copy data block at $00,x to COS workspace at $c9
+                                ; also checks filename is < 14 chars, PIC additionally checks < 8 chars 
    jsr   copy_name
    jsr   open_file_read         ; invokes error handler if return code > 64
    jsr   read_info
