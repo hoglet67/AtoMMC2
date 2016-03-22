@@ -57,7 +57,7 @@ send_name:
 read_info:
    ; read the file header to $140
 
-   SETRWPTR NAME
+   jsr   set_rwptr_to_name
 
    lda   #22
    jsr   read_block
@@ -169,7 +169,7 @@ read_block_shared:
 ; file needs to be open at this point
 ;
 write_info:
-   SETRWPTR NAME
+   jsr   set_rwptr_to_name
    lda   #22
    jmp   write_block
 

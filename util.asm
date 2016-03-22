@@ -94,6 +94,7 @@ fast_cmd:
    ; fall through to slow_cmd 
 .endif
 
+        
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Fast command, command port write followed by interwrite delay on PIC,
@@ -208,6 +209,19 @@ read_data_buffer:
 return_ok:
    rts
 
+        
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; set RWPTR to point to NAME  (i.e. $140)
+;
+; this is called 5 times, so making it a subroutine rather than a macro
+; saves 4 * (8 - 3) - 9 = 11 bytes! 
+set_rwptr_to_name:
+   lda   #<NAME
+   sta   RWPTR
+   lda   #>NAME
+   sta   RWPTR+1
+   rts
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;

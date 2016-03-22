@@ -67,7 +67,7 @@ osloadcode:
 ;  jsr   CHKNAME
 ;  jsr  open_file_read          ; invokes error handler if return code > 64
 ;
-;  SETRWPTR NAME                ; get the FAT file size - ignore any ATM headers
+;  jsr   set_rwptr_to_name      ; get the FAT file size - ignore and ATM headers
 ;
 ;  lda   #CMD_FILE_GETINFO
 ;  jsr   slow_cmd

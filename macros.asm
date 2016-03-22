@@ -5,17 +5,12 @@
 ;
 ; 2013-10-09 converted some of the macro calls to jsr calls where
 ; appropriate. -- PHS
+; 2016-03-22 did this more aggressively to reduce code size and
+; make other tail optimizations easier. -- DMB
 ;
 
 .macro FNADDR addr
    .byte >addr, <addr
-.endmacro
-
-.macro SETRWPTR addr
-   lda   #<addr
-   sta   RWPTR
-   lda   #>addr
-   sta   RWPTR+1
 .endmacro
 
 ; Subroutines for macros in util.asm

@@ -7,8 +7,7 @@
 star_fatinfo:
    jsr   open_filename_read     ; invokes error handler if return code > 64
 
-   SETRWPTR NAME                ; get the FAT file size - text files won't have ATM headers
-
+   jsr   set_rwptr_to_name      ; get the FAT file size - text files won't have ATM headers
    lda   #CMD_FILE_GETINFO
    jsr   slow_cmd
 
