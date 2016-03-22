@@ -42,6 +42,8 @@ Exclude some interrupt code in util from the E000 build, 0A7F
 
 Recoded print_fileinfo, 0A71
 
+Remove unused code from utils.asm, 0A09
+
 Possible patten to factor out:
    jsr   read_filename
    jsr   open_file_read
