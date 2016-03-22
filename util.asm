@@ -162,42 +162,6 @@ getasciizstringto140:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
-; Read data to memory from the pic's buffer
-;
-; data may be from another source other than file, ie getfileinfo
-; x = number of bytes to read (0 = 256)
-; (RWPTR) points to store
-;
-read_data_buffer:
-   jsr   prepare_read_data
-
-   ldy   #0
-
-@loop:
-   jsr   read_data_reg
-   sta   (RWPTR),y
-   iny
-   dex
-   bne   @loop
-
-   rts
-
-
-;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
-;
-; Perform slow command initialisation and expect a return code <= 64
-;
-slow_cmd_and_check:
-   jsr   slow_cmd
-
-expect64orless:
-   cmp   #STATUS_COMPLETE+1
-   bcs   reportDiskFailure
-   rts
-
-
-;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
-;
 ; Disable/Enable interface IRQ
 ;
 ifdi:
@@ -222,9 +186,46 @@ putcb:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
+; Read data to memory from the pic's buffer
+;
+; data may be from another source other than file, ie getfileinfo
+; x = number of bytes to read (0 = 256)
+; (RWPTR) points to store
+;
+read_data_buffer:
+   jsr   prepare_read_data
+
+   ldy   #0
+
+@loop:
+   jsr   read_data_reg
+   sta   (RWPTR),y
+   iny
+   dex
+   bne   @loop
+
+return_ok:
+   rts
+
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Perform slow command initialisation and expect a return code <= 64
+;
+slow_cmd_and_check:
+   jsr   slow_cmd
+
+expect64orless:
+   cmp   #STATUS_COMPLETE+1
+   bcc   return_ok
+   ; fall through to report_disk_failure
+
+        
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
 ; report a file system error
 ;
-reportDiskFailure:
+report_disk_failure:
    and   #ERROR_MASK
    tax                          ; error code into x
    ldy   #$ff                   ; string indexer

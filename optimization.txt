@@ -36,6 +36,8 @@ Remove FASTCMD macros, 0AA1
 
 Move prepare_xxx_data commands to save a few bytes, 0A9D
 
+Optimise away another rts, 0A9C
+
 Possible patten to factor out:
    jsr   read_filename
    jsr   open_file_read
