@@ -12,13 +12,12 @@ star_chain:
    ldy   #0
    sty   $0d
 laee1:
-   ldy   $3
+   ldy   $2
 laee3:
-   lda   ($0d),y
    iny
+   lda   ($0d),y
    cmp   #$0d
    bne   laee3
-   dey
    clc
    tya
    adc   $0d

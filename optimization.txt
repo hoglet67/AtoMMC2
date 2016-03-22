@@ -60,3 +60,4 @@ A few bytes saved in *CFG, *PBD, *PBV, 099F
 
 Another 6 bytes saved in *CAT. 0999
 
+One byte saved in *CHAIN, 0998
