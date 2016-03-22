@@ -27,8 +27,10 @@ star_help:
    ;
    jsr   STROUT
    .byte 10, 13, "CARD TYPE: "
-   nop
-   SLOWCMDI CMD_GET_CARD_TYPE
+   ; NOP not needed, as next opcode is > 0x80
+
+   lda   #CMD_GET_CARD_TYPE
+   jsr   slow_cmd
 
    jsr   bittoindex
    ldy   #4

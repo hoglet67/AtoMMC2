@@ -60,12 +60,12 @@ star_cat:
 @continue:
    jsr   send_name
 
-   SLOWCMDI CMD_DIR_OPEN        ;  open directory
-   jsr   expect64orless
+   lda   #CMD_DIR_OPEN          ; open directory
+   jsr   slow_cmd_and_check     ; invokes error handler if return code > 64
 
 get_next_loop:
-   SLOWCMDI CMD_DIR_READ        ; get directory item
-   jsr   expect64orless
+   lda   #CMD_DIR_READ          ; get directory item
+   jsr   slow_cmd_and_check     ; invokes error handler if return code > 64
 
    cmp   #STATUS_COMPLETE       ; all done
    bne   @printit

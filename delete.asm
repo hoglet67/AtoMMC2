@@ -6,7 +6,7 @@
 ;
 star_delete:
    jsr   read_filename
-   jsr   open_file_read
+   jsr   open_file_read         ; invokes error handler if return code > 64
 
    jsr   STROUT
    .byte "CONFIRM (Y):"

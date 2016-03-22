@@ -24,5 +24,5 @@ set_cwd:
    jsr   CHKNAME
    jsr   send_name              ; put string at $140 to interface
 
-   SLOWCMDI CMD_DIR_CWD         ; set CWD
-   jmp   expect64orless
+   lda   #CMD_DIR_CWD           ; set CWD
+   jmp   slow_cmd_and_check     ; invokes error handler if return code > 64

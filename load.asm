@@ -24,7 +24,7 @@ osloadcode:
    ;
    jsr  CHKNAME
    jsr  copy_name
-   jsr  open_file_read
+   jsr  open_file_read          ; invokes error handler if return code > 64
    jsr  read_info
 
    ; @@TUBE@@
@@ -65,11 +65,12 @@ osloadcode:
 ;  ldx   #$c9                   ; File data starts at #C9
 ;
 ;  jsr   CHKNAME
-;  jsr  open_file_read
+;  jsr  open_file_read          ; invokes error handler if return code > 64
 ;
 ;  SETRWPTR NAME                ; get the FAT file size - ignore any ATM headers
 ;
-;  SLOWCMDI   CMD_FILE_GETINFO
+;  lda   #CMD_FILE_GETINFO
+;  jsr   slow_cmd
 ;
 ;  ldx   #13
 ;  jsr   read_data_buffer
@@ -125,7 +126,7 @@ osloadcode:
 ;  jsr   read_filename          ; copy filename into $140
 ;  jsr   $f844                  ; set $c9\a = $140, set x = $c9
 ;  ;jsr   CHKNAME
-;  jsr   open_file_read
+;  jsr   open_file_read         ; invokes error handler if return code > 64
 ;
 ;  lda   #0
 ;  sta   LLOAD

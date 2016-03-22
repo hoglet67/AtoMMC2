@@ -18,7 +18,7 @@ open_file:
    pha
    jsr   send_name
    pla
-   SLOWCMD_THEN_RTS
+   jmp   slow_cmd
 
 send_name:
    jsr   prepare_write_data
@@ -148,8 +148,8 @@ read_block_shared:
    tax
    ; ask PIC for (A) bytes of data (0=256)
    jsr   write_latch_reg        ; set amount to read
-   SLOWCMDI CMD_READ_BYTES      ; set command
-   jsr   expect64orless
+   lda   #CMD_READ_BYTES        ; set command
+   jsr   slow_cmd_and_check     ; invokes error handler if return code > 64
    jmp   prepare_read_data      ; tell pic to release the data we just read
 
 
@@ -192,8 +192,8 @@ write_file:
    jsr   write_file_adapter
 
 closefile:
-   SLOWCMDI CMD_FILE_CLOSE      ; close the file
-   jmp   expect64orless
+   lda   #CMD_FILE_CLOSE        ; close the file
+   jmp   slow_cmd_and_check     ; invokes error handler if return code > 64
 
 
 ; adapter - falls through to write_block
@@ -234,8 +234,8 @@ write_block:
 write_block_shared:
    pla                          ; write block command
    jsr   write_latch_reg        ; amount to write
-   SLOWCMDI CMD_WRITE_BYTES     ; give command to write
-   jmp   expect64orless
+   lda   #CMD_WRITE_BYTES       ; give command to write
+   jmp   slow_cmd_and_check     ; invokes error handler if return code > 64
 
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -245,5 +245,5 @@ write_block_shared:
 ; file to be deleted must be opened with open_read
 ;
 delete_file:
-   SLOWCMDI CMD_FILE_DELETE
-   jmp   expect64orless
+   lda   #CMD_FILE_DELETE
+   jmp   slow_cmd_and_check     ; invokes error handler if return code > 64

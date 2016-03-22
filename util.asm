@@ -68,19 +68,19 @@ data_read_delay:
 .endif
 
 ; subroutines for macros in macro.inc
-SLOWCMD_SUB:
+slow_cmd:
    jsr   write_cmd_reg
-.ifndef AVR
-SlowLoop:
 
+.ifndef AVR
+slow_cmd_loop:
    lda   #0
    sec
-SLOWCMD_DELAY_LOOP:
+slow_cmd_delay_loop:
    sbc   #1
-   bne   SLOWCMD_DELAY_LOOP
+   bne   slow_cmd_delay_loop
 
    lda   ACMD_REG
-   bmi   SlowLoop
+   bmi   slow_cmd_loop
 .else
    jsr   WaitWhileBusy       ; Keep waiting until not busy
    lda   ACMD_REG            ; get status for client
@@ -164,6 +164,9 @@ read_data_buffer:
 ;
 ; Perform slow command initialisation and expect a return code <= 64
 ;
+slow_cmd_and_check:
+   jsr   slow_cmd
+
 expect64orless:
    cmp   #STATUS_COMPLETE+1
    bcs   reportDiskFailure

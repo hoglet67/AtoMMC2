@@ -30,6 +30,8 @@ Move OSCRLF into print_fileinfo, 0ACA
 
 Minor RAF optimizations, 0AC6
 
+Remove SLOWCMD macros, merge expect64orless where possible, 0AB0
+
 Possible patten to factor out:
    SLOWCMDI xxxx
    jsr   expect64orless

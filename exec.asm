@@ -8,11 +8,12 @@
 star_exec:
    jsr   read_filename
 
-   jsr   open_file_read
+   jsr   open_file_read         ; invokes error handler if return code > 64
 
    SETRWPTR NAME                ; get the FAT file size - text files won't have ATM headers
 
-   SLOWCMDI CMD_FILE_GETINFO
+   lda   #CMD_FILE_GETINFO
+   jsr   slow_cmd
 
    ldx   #13
    jsr   read_data_buffer
@@ -70,7 +71,9 @@ sinkchar:
    lda   RDCCNT                 ; recover count
    jsr   write_latch_reg        ; set ammount to read
 
-   SLOWCMDI CMD_READ_BYTES      ; set command
+   lda   #CMD_READ_BYTES        ; set command
+   jsr   slow_cmd
+        
    cmp   #STATUS_COMPLETE
    beq   @allok
 

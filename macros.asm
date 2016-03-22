@@ -11,30 +11,14 @@
    .byte >addr, <addr
 .endmacro
 
-; Note SLOWCMD used to take a port number, but since ALL calls used APORT_CMD
-; it is more code size efficient to convert it to a subroutine call, that always
-; uses ACMD_PORT.
-.macro SLOWCMD
-   jsr   SLOWCMD_SUB
-.endmacro
-
-.macro SLOWCMD_THEN_RTS
-   jmp   SLOWCMD_SUB
-.endmacro
-                
-.macro SLOWCMDI command
-   lda   #command
-   SLOWCMD
-.endmacro
-
 ; Fast command, command port write followed by interwrite delay on PIC,
-; Simply an alias for SLOWCMD on AVR.
+; Simply an alias for "jsr slow_cmd" on AVR.
 .macro FASTCMD
 .ifndef AVR
    jsr   write_cmd_reg
    lda   ACMD_REG
 .else
-   SLOWCMD
+   jsr   slow_cmd
 .endif
 .endmacro
 

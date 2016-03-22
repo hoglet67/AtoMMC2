@@ -103,7 +103,7 @@ shut_one:
 shut_file:
    jsr   mul32handle            ; Command = 32*(file handle AND 3)
    adc   #CMD_FILE_CLOSE        ; Select CMD_FILE_CLOSE command file 1,2 or 3
-   SLOWCMD_THEN_RTS             ; Send command + wait
+   jmp   slow_cmd               ; Send command + wait
 
 ;----------------------------------------------------------------
 ; OSBPUT vector $216
@@ -136,8 +136,7 @@ osbputcode:
 
    jsr   mul4handle             ; Command=$21+4*file handle
    adc   #CMD_WRITE_BYTES
-   SLOWCMD                      ; Send command + wait
-   jmp expect64orless           ; Check for error
+   jmp   slow_cmd_and_check     ; invokes error handler if return code > 64
 
 bput_zero_device:
    pla                          ; Screen output
@@ -172,7 +171,7 @@ osbgetcode:
 
    jsr   mul4handle             ; Command=$22+4*file handle
    adc   #CMD_READ_BYTES        ; CMD_READ_BYTES
-   SLOWCMD                      ; Send command + wait
+   jsr   slow_cmd               ; Send command + wait
    cmp   #STATUS_EOF            ; Check for EOF flag
    beq   set_eof_flag
    jsr   expect64orless         ; Check for errors
@@ -215,7 +214,7 @@ osrdarcode:
 
    jsr   mul32handle            ; Command=$15+32*file handle
    adc   #CMD_FILE_GETINFO
-   SLOWCMD                      ; Send command + wait
+   jsr   slow_cmd               ; Send command + wait
 
    jsr   prepare_read_data      ; CMD_INIT_READ
 
@@ -268,7 +267,7 @@ osstarcode:
 
    jsr   mul32handle
    adc   #CMD_SEEK              ; Command=$16+32*file handle
-   SLOWCMD_THEN_RTS             ; Send command + wait
+   jmp   slow_cmd               ; Send command + wait
 
 ptr_zero_device:
    brk

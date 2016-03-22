@@ -206,8 +206,8 @@ irqgetcardtype2:
 
    ; send read card type command - this also de-asserts the interrupt
 
-   LDA   #CMD_GET_CARD_TYPE
-   SLOWCMD_THEN_RTS
+   lda   #CMD_GET_CARD_TYPE
+   jmp   slow_cmd
 
 ; patched os input function
 ;
