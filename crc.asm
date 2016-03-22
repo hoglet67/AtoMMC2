@@ -13,6 +13,66 @@ star_crc:
    ldx   #SEND
    jsr   $fa65
 
+.ifdef ATOM_CRC_POLYNOMIAL
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; This is Wouter Ras's conversion of the classic Atom CRC, see:
+;    http://wouter.bbcmicro.net/_archive/atom/utils/bestanden/atom_crc.txt
+; 
+; version 1
+; 
+; code size: 56 bytes
+; 
+
+   ldy   #$00
+
+   sty   CRC
+   sty   CRC+1
+@ll0:
+   lda   (SSTART),y
+   sta   CRC+2
+   ldx   #8
+@ll1:    
+   lsr   CRC+2
+   rol   CRC
+   rol   CRC+1
+   bcc   @ll2
+   lda   CRC
+   eor   #ATOM_CRC_POLYNOMIAL
+   sta   CRC
+@ll2:
+   dex
+   bne   @ll1
+   iny
+   bne   @ll3
+   inc   SSTART+1
+@ll3:
+   lda   SEND                   ; 16-bit decrement
+   bne   @ll4
+   dec   SEND+1
+@ll4:   
+   dec   SEND
+   bne   @ll0                   ; followed by 16-bit test for zero
+   lda   SEND + 1
+   bne   @ll0
+
+@ll5:
+   ldx   #CRC
+   jsr   $f7f1
+   jmp   OSCRLF
+
+        
+.else
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; This is the fast CRC-16 code, see:
+;    http://forum.6502.org/viewtopic.php?t=558
+;    http://6502.org/source/integers/crc-more.html
+; 
+; code size: 87 bytes
+; 
    ldy   #$ff
    sty   CRC
    sty   CRC+1
@@ -82,4 +142,5 @@ calcblock:
    bne   @calc
    rts
 
+.endif
 

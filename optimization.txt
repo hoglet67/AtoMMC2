@@ -73,3 +73,5 @@ Improved hex printing in *FATINFO, saving 10 bytes, 0971
 Used SPCOUT ($f7fd) in a couple of places, saving 4 bytes, 096D
 
 Rewrote print_fileinfo using some Atom OS subroutines, saving 8 bytes, 0965
+
+Updated to "classic" Atom CRC, saving 31 bytes, 0946

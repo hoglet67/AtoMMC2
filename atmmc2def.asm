@@ -8,6 +8,11 @@ TOP         =$0d
 PAGE        =$12
 ARITHWK     =$23
 
+; if ATOM_CRC_POLYNOMIAL is defined, *CRC will use it
+; if not, it will use the original code which is faster, but ~30 bytes longer
+ATOM_CRC_POLYNOMIAL = $2d        
+
+
 ; these need to be in ZP
 ;
 RWPTR       =$ac         ; W - data target vector
