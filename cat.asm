@@ -41,7 +41,7 @@ star_cat:
 @terminate:
    lda   #$0d
    sta   NAME,x
-   bne   @next
+   bne   @next                  ; branch always
 
 
 @setfilt:
@@ -52,7 +52,7 @@ star_cat:
 
    sta   FILTER                 ; yaay! filter!
    iny
-   bne   @next
+   bne   @next                  ; branch always
 
 
 
@@ -98,15 +98,14 @@ get_next_loop:
    jsr   OSCRLF
 
 @pause:
-   bit   $b002                  ; stick here while REPT/shift/ctrl pressed
-   bvc   @pause
-   lda   $b001
-   rol   a                      ; shift/rept pressed?
-   bcc   @pause
-   rol   a
-   bcc   @pause
-   rol   a                      ; esc pressed?
-   bcs   get_next_loop
+   bit   $b002                  ; test the rept key
+   bvc   @pause                 ; stick here if rept pressed
+
+   lda   #$20                   ; bit 5 is the mask for the escape key
+   bit   $b001                  ; test the ctrl/shift/esc keys
+   bpl   @pause                 ; stick here if shift pressed
+   bvc   @pause                 ; stick here if ctrl pressed
+   bne   get_next_loop          ; loop back if escape not pressed
 
    jmp   OSCRLF
 

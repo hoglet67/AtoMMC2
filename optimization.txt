@@ -51,3 +51,5 @@ Factor out read_filename followed by open_file_read, 09FE
 Convert SETRWPTR to a subroutine, 09F3
 
 Factor out open_filename_read followed by getinfo (exec, fatinfo, rload), 09E6
+
+One byte saved in *CAT, 09E5
