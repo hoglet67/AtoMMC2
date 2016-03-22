@@ -6,16 +6,9 @@
 ; Highly experimental :)
 ;
 star_exec:
-   jsr   open_filename_read     ; invokes error handler if return code > 64
+   jsr   open_filename_getinfo  ; opens the filename for reading, and calls getinfo
 
-   jsr   set_rwptr_to_name      ; get the FAT file size - text files won't have ATM headers
-   lda   #CMD_FILE_GETINFO
-   jsr   slow_cmd
-
-   ldx   #13
-   jsr   read_data_buffer
-
-   lda   NAME
+   lda   NAME                   ; fat file length
    sta   RDCLEN
    lda   NAME+1
    sta   RDCLEN+1

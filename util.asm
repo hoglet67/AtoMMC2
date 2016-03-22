@@ -188,6 +188,22 @@ putcb:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
+; opens a file for reading, then gets the file info
+;
+; this is used by fatinfo, exec, and rload
+open_filename_getinfo:
+   jsr   open_filename_read     ; invokes error handler if return code > 64
+
+   jsr   set_rwptr_to_name      ; get the FAT file size - text files won't have ATM headers
+   lda   #CMD_FILE_GETINFO
+   jsr   slow_cmd
+
+   ldx   #13
+   ; jmp   read_data_buffer  
+   ; fall through to read_data_buffer   
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
 ; Read data to memory from the pic's buffer
 ;
 ; data may be from another source other than file, ie getfileinfo
@@ -222,6 +238,7 @@ set_rwptr_to_name:
    lda   #>NAME
    sta   RWPTR+1
    rts
+
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;

@@ -49,3 +49,5 @@ Eliminate a couple of NOPs in *HELP, 0A07
 Factor out read_filename followed by open_file_read, 09FE
 
 Convert SETRWPTR to a subroutine, 09F3
+
+Factor out open_filename_read followed by getinfo (exec, fatinfo, rload), 09E6

@@ -65,15 +65,7 @@ osloadcode:
 ;  ldx   #$c9                   ; File data starts at #C9
 ;
 ;  jsr   CHKNAME
-;  jsr  open_file_read          ; invokes error handler if return code > 64
-;
-;  jsr   set_rwptr_to_name      ; get the FAT file size - ignore and ATM headers
-;
-;  lda   #CMD_FILE_GETINFO
-;  jsr   slow_cmd
-;
-;  ldx   #13
-;  jsr   read_data_buffer
+;  jsr   open_filename_getinfo  ; opens the filename for reading, and calls getinfo
 ;
 ;  lda   NAME                   ; fat file length
 ;  sta   LLENGTH
