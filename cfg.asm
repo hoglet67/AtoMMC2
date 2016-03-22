@@ -11,7 +11,6 @@
 ;
 star_pbd:
    lda   #CMD_GET_PORT_DDR
-   sta   $ce
    bne   do_cfg_cmd             ; branch always
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -26,7 +25,6 @@ star_pbd:
 ;
 star_pbv:
    lda   #CMD_READ_PORT
-   sta   $ce
    bne   do_cfg_cmd             ; branch always
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -43,7 +41,6 @@ star_pbv:
 
 star_cfg:
    lda   #CMD_GET_CFG_BYTE
-   sta   $ce
 
    ; fall into ...
 
@@ -59,6 +56,7 @@ star_cfg:
 ;
 
 do_cfg_cmd:
+   sta   $ce
    ldx   #$cb                   ; scan parameter - print existing val if none
    jsr   RDOPTAD
    bne   @param1valid
