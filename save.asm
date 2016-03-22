@@ -23,9 +23,9 @@ star_save:
 ;
         
 ossavecode:
-   jsr   CHKNAME                ; copy data block at $00,x to COS workspace at $c9
-                                ; also checks filename is < 14 chars, PIC additionally checks < 8 chars 
-   jsr   copy_name
+   jsr   copy_name              ; copy data block at $00,x to COS workspace at $c9
+                                ; also checks filename is < 14 chars, PIC additionally checks < 8 chars
+                                ; copy filename from ($c9) to $140 
 
 @retry_write:
    jsr   open_file_write        ; returns with any error in A

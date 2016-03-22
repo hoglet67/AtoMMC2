@@ -427,6 +427,8 @@ read_optional_filename:
 ; Copy filename from ($c9) to $140
 ;
 copy_name:
+   jsr   CHKNAME                ; copy data block at $00,x to COS workspace at $c9
+                                ; also checks filename is < 14 chars, PIC additionally checks < 8 chars 
    ldy   #0
 
 copy_name_loop:

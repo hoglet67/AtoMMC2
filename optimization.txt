@@ -65,3 +65,5 @@ One byte saved in *CHAIN, 0998
 Removed incorrect / unnecessary name checking from *CWD, 0985
 
 Fixed broken error checking in *SAVE, saving 7 bytes in the process, 097E
+
+Pushed CHKNAME into copy_name, 097B
