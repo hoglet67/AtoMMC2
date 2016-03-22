@@ -1,10 +1,19 @@
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
+; Read filename, then fall through to open_file_read
+
+open_filename_read:
+   jsr   read_filename          ; copy filename from $100 to $140
+   ; fall through to open_file_read 
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
 ; Open file for read or write
 ;
 ; $140 = name
 ; a = read/write $01 = read, $11 = write
 ;
+
 open_file_read:
    lda   #CMD_FILE_OPEN_READ
    jsr   open_file

@@ -5,8 +5,7 @@
 ; Deletes the specified file after a prompt, unless Y specified on command line
 ;
 star_delete:
-   jsr   read_filename
-   jsr   open_file_read         ; invokes error handler if return code > 64
+   jsr   open_filename_read     ; invokes error handler if return code > 64
 
    jsr   STROUT
    .byte "CONFIRM (Y):"

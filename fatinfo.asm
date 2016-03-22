@@ -5,9 +5,7 @@
 ; Shows fat filesystem file info - size on disk, sector, fptr and attrib.
 ;
 star_fatinfo:
-   jsr   read_filename
-
-   jsr   open_file_read         ; invokes error handler if return code > 64
+   jsr   open_filename_read     ; invokes error handler if return code > 64
 
    SETRWPTR NAME                ; get the FAT file size - text files won't have ATM headers
 
