@@ -57,7 +57,6 @@ star_crc:
    lda   SEND + 1
    bne   @ll0
 
-@ll5:
    ldx   #CRC
    jsr   $f7f1
    jmp   OSCRLF
