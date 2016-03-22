@@ -21,34 +21,29 @@ star_save:
 ; 6,x = data start address
 ; 8,x = data end address + 1
 ;
+        
 ossavecode:
    jsr   CHKNAME                ; copy data block at $00,x to COS workspace at $c9
                                 ; also checks filename is < 14 chars, PIC additionally checks < 8 chars 
    jsr   copy_name
+
+@retry_write:
    jsr   open_file_write        ; returns with any error in A
 
-   and   #$3f
-   beq   @continue
+   cmp   #$48                   ; test for FILE EXISTS
+   bne   @continue              ; no, then skip forwards
 
-   cmp   #$08                   ; FILE EXISTS
-   beq   @askover
-
-   jmp   expect64orless         ; other kind of error
-
-@askover:
-   jsr   STROUT
+   jsr   STROUT                 ; prompt to the file
    .byte "OVERWRITE (Y):"
    nop
-
-   jsr   confirm_or_rts         ; pops an extra address off the stack if Y not presed
-        
+   jsr   confirm_or_rts         ; pops an extra address off the stack if Y not presed        
    jsr   delete_file
-
-   jsr   open_file_write
-   jsr   expect64orless
-
+   jmp   @retry_write
+        
 @continue:
 
+   jsr   expect64orless         ; other kind of error
+        
    ; @@TUBE@@
    ; Test if the tube is enabled, then claim and initiate transfer
    ldx   #SLOAD                 ; block containing transfer address
