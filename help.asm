@@ -11,7 +11,7 @@ star_help:
 
    jsr   STROUT
    .byte 10, 13, "INTERFACE F/W VERSION "
-   nop
+   ; NOP not needed, as next opcode is > 0x80
 
    lda   #CMD_GET_FW_VER
    jsr   fast_cmd
@@ -19,7 +19,7 @@ star_help:
 
    jsr   STROUT
    .byte 10, 13, "BOOTLOADER VERSION "
-   nop
+   ; NOP not needed, as next opcode is > 0x80
 
    lda   #CMD_GET_BL_VER
    jsr   fast_cmd

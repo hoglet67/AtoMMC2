@@ -27,7 +27,7 @@ selectrom:
 
    jsr   STROUT
    .byte "<PRESS BREAK>"
-   nop
+   ; NOP not needed, as next opcode is > 0x80
 
    lda   #0                     ; ROM in $a000 please
    sta   $cc
