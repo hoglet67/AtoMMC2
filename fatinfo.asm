@@ -27,14 +27,12 @@ star_fatinfo:
 
 
 hexdword:
+   ldy   #4
+@loop:
    lda   NAME,x
    jsr   HEXOUT
    dex
-   lda   NAME,x
-   jsr   HEXOUT
-   dex
-   lda   NAME,x
-   jsr   HEXOUT
-   dex
-   lda   NAME,x
-   jmp   HEXOUTS
+   dey
+   bne   @loop
+   lda   #32
+   jmp   OSWRCH
