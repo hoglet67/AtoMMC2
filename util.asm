@@ -142,7 +142,7 @@ WaitWhileBusy:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
-; Read an asciiz string to name buffer at $140
+; Read an asciiz string to name buffer at $140 + y
 ;
 ; on exit y = character count not including terminating 0
 ;
@@ -151,14 +151,15 @@ WaitWhileBusy:
 getasciizstringto140:
    jsr   prepare_read_data
 
-   ldy   #$ff
-
+   dey
 @loop:
    iny
    jsr   read_data_reg
    sta   NAME,y
    bne   @loop
 
+   lda   #$0d                   ; replace the terminator by <cr>
+   sta   NAME,y                 ; so the filename can be reused by the pic
    rts
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -317,41 +318,6 @@ diskerrortab:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
-; Display the filename at $140
-;
-;   renders 16 chars, pads with spaces
-;
-print_filename:
-   ldx   #0
-   beq   @test
-
-@showit:
-   jsr   OSWRCH
-   inx
-
-@test:
-   lda   NAME,x
-   cmp   #32                 ; end string print if we find char < 32
-   bcc   @test2
-
-   cpx   #16                 ; or x == 16
-   bne   @showit
-
-   rts
-
-@showit2:
-   jsr   SPCOUT
-   inx
-
-@test2:
-   cpx   #16
-   bne   @showit2
-
-filename_ok:
-   rts
-
-;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
-;
 ; Read filename from $100 to $140
 ;
 ; Input  $9A = pointer just after command
@@ -437,6 +403,7 @@ copy_name_loop:
    cmp   #$0d
    bne   copy_name_loop
 
+filename_ok:
    rts
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
