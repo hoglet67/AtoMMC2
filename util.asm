@@ -91,10 +91,10 @@ fast_cmd:
    lda   ACMD_REG
    rts
 .else
-   ; fall through to slow_cmd 
+   ; fall through to slow_cmd
 .endif
 
-        
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Fast command, command port write followed by interwrite delay on PIC,
@@ -165,7 +165,7 @@ getasciizstringto140:
 ;
 ; Disable/Enable interface IRQ
 ;
-.ifndef EOOO        
+.ifndef EOOO
 ifdi:
    jsr   getcb
    and   #$DF                   ; remove bit 5
@@ -199,8 +199,8 @@ open_filename_getinfo:
    jsr   slow_cmd
 
    ldx   #13
-   ; jmp   read_data_buffer  
-   ; fall through to read_data_buffer   
+   ; jmp   read_data_buffer
+   ; fall through to read_data_buffer
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -225,13 +225,13 @@ read_data_buffer:
 return_ok:
    rts
 
-        
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; set RWPTR to point to NAME  (i.e. $140)
 ;
 ; this is called 5 times, so making it a subroutine rather than a macro
-; saves 4 * (8 - 3) - 9 = 11 bytes! 
+; saves 4 * (8 - 3) - 9 = 11 bytes!
 set_rwptr_to_name:
    lda   #<NAME
    sta   RWPTR
@@ -252,7 +252,7 @@ expect64orless:
    bcc   return_ok
    ; fall through to report_disk_failure
 
-        
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; report a file system error
@@ -349,7 +349,7 @@ print_filename:
 
 filename_ok:
    rts
-        
+
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
 ; Read filename from $100 to $140
@@ -361,7 +361,7 @@ filename_ok:
 read_filename:
    jsr   read_optional_filename
 
-   cpx   #0                     ; chec the filename length > 0 
+   cpx   #0                     ; chec the filename length > 0
    bne   filename_ok
 
 syn_error:
@@ -427,7 +427,7 @@ read_optional_filename:
 ;
 copy_name:
    jsr   CHKNAME                ; copy data block at $00,x to COS workspace at $c9
-                                ; also checks filename is < 14 chars, PIC additionally checks < 8 chars 
+                                ; also checks filename is < 14 chars, PIC additionally checks < 8 chars
    ldy   #0
 
 copy_name_loop:
@@ -465,7 +465,7 @@ confirm_or_rts:
    cmp   #'Y'
    beq   @confirm_yes           ; return to the caller
 
-   pla                          ; pop an extra level of stack 
+   pla                          ; pop an extra level of stack
    pla                          ; which will cancel the operation
 
 @confirm_yes:
