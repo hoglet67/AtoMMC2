@@ -338,6 +338,8 @@ comint6:
 .include "help.asm"
 .include "info.asm"
 .include "load.asm"
+.include "mkdir.asm"
+.include "rmdir.asm"
 .include "run.asm"
 .include "save.asm"
 .include "file.asm"
@@ -405,6 +407,12 @@ com_tab:
 
 ;  .byte "UROM"                 ; in urom.asm
 ;  FNADDR star_urom
+
+   .byte "MKDIR"                ; in mkdir.asm
+   FNADDR star_mkdir
+
+   .byte "RMDIR"                ; in rmdir.asm
+   FNADDR star_rmdir
 
    .byte "MON"
    FNADDR $fa1a
