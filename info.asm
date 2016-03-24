@@ -3,11 +3,11 @@
 ; *INFO  ([directory path]/)... ([file path])
 ; or
 ; *INFO  ([directory path]/)... ([wildcard pattern])
-;        
+;
 ; Shows metatadata associated with one or more files.
 ;
 ; If the path resolved to a single file, then info for just this file is displayed.
-;         
+;
 ; Otherwise the path is assumed to identify a directory and a wildcard pattern
 ; filters the files in this directory.
 ;
@@ -15,53 +15,35 @@
 ;
 ; The wildcard pattern is optional, if omitted * is used.
 ;
+; 2016-03-22, *CAT code also used for *INFO, giving *INFO multi file / wildcard support
+; 2016-03-23, Added back support for *INFO on a single file
+; 2016-03-23, Reworked *CAT and *INFO so code is more readable
+;
 star_info:
-   lda   #0                     ; load address is not set
-   sta   LEXEC
-
-   jsr   read_filename          ; copy filename from $100 to $140
+   jsr   read_optional_filename ; copy filename from $100 to $140
 
    lda   #CMD_FILE_OPEN_READ
    jsr   open_file              ; open the filename for reading
 
-   cmp   #STATUS_COMPLETE+1     ; check for an error
-   bcs   directory_cat_info     ; if so, then assume the second for of *INFO
-
-   ldx   #0                     ; attribute byte for a normal file
    ldy   #0                     ; filename starts at offset 0 in the buffer
 
-   ; fall through into read_file_info
-        
+   cmp   #STATUS_COMPLETE+1     ; check for an error, and if so assume directory mode
+   bcs   directory_cat_info     ; y=0 forces *INFO mode
+   ; fall through into print_filename_and_info with y=0
+
 ; read an open file's ATM header and print's the appropriate info
 ;
 ; On entry:
-;     X: file attribue byte (bit 4 used to determine file / directory)
 ;     Y: start position of the filename in the buffer
-; LEXEC: $00 for *INFO, $ff for *CAT
 ;
-read_file_info:
-
-@nameloop:
-   lda   NAME,y                 ; get next char of filename
-   cmp   #$0d
-   beq   @nameend
-   jsr   OSWRCH
-   iny
-   bne   @nameloop
-
-@nameend:
-   txa                          ; restore the file's attribute byte
-   ora   LEXEC                  ; $00 for *INFO, $ff for *CAT,
-   and   #$10                   ; dir?
-   bne   @newline               ; skip info if *CAT or current item is a directory
+print_filename_and_info:
+   jsr   print_filename
 
 @padloop:
    jsr   SPCOUT                 ; pad filename with spaces
    lda   $e0                    ; $e0 = horizontal cursor position
    cmp   #16                    ; continue until column 16
    bcc   @padloop
-
-   jsr   open_file_read         ; send the file name and prepare for reading
 
    lda   #22                    ; ATM header size
    jsr   read_block_shared
@@ -74,12 +56,30 @@ read_file_info:
    sta   LLOAD, y               ; save bytes 17..22 (ATM header load, exec, length)
    cpy   #5
    bne   @headerloop
+   ; fall through into print_fileinfo
 
-   jsr   print_fileinfo         ; print info from LLOAD followed by newline
-
-   lda   #$00                   ; reset the cat/info flag back to info
-   sta   LEXEC                  ; as it's corrupted just above
-   rts
-
-@newline:
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Display file info
+;
+; Prints load, exec, length
+;
+print_fileinfo:
+   ldx   #LLOAD
+   jsr   HEXOUT4                ; $f7ee print 4 bytes in hex, incrementing X
+   jsr   HEXOUT2                ; $f7f1 print 2 bytes in hex, incrementing X
    jmp   OSCRLF
+
+;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
+;
+; Display file name
+;
+; Prints name
+;
+print_filename:
+   lda   NAME,y                 ; get next char of filename
+   cmp   #$0d
+   beq   return                 ; save a byte by using an RTS in *CAT
+   jsr   OSWRCH
+   iny
+   bne   print_filename

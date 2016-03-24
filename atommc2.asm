@@ -328,8 +328,8 @@ star_com5:
 comint6:
    jmp   ($0052)
 
-.include "cat.asm"
 .include "info.asm"
+.include "cat.asm"
 .include "cwd.asm"
 .include "cfg.asm"
 .include "crc.asm"

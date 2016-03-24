@@ -408,18 +408,6 @@ filename_ok:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
-; Display file info
-;
-; Shows load, exec, length
-;
-print_fileinfo:
-   ldx   #LLOAD
-   jsr   HEXOUT4                ; $f7ee print 4 bytes in hex, incrementing X
-   jsr   HEXOUT2                ; $f7f1 print 2 bytes in hex, incrementing X
-   jmp   OSCRLF
-
-;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
-;
 ; Wait for a key press, return back two levels if not Y
 ;
 
