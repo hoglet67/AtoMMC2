@@ -329,6 +329,7 @@ comint6:
    jmp   ($0052)
 
 .include "cat.asm"
+.include "info.asm"
 .include "cwd.asm"
 .include "cfg.asm"
 .include "crc.asm"
@@ -336,7 +337,6 @@ comint6:
 .include "exec.asm"
 .include "fatinfo.asm"
 .include "help.asm"
-.include "info.asm"
 .include "load.asm"
 .include "mkdir.asm"
 .include "rmdir.asm"

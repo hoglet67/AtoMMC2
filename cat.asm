@@ -15,7 +15,7 @@ star_cat:
    lda   #$ff                   ; never show full info
    sta   LEXEC
 
-generic_cat_info:
+directory_cat_info:
 
    jsr   read_optional_filename ; do we have a filter/path?
 
@@ -44,49 +44,8 @@ get_next_loop:
    bne   @pause                 ; yes, don't print anything
 
    ldy   SEND                   ; print the file name returned by the PIC
-@nameloop:
-   lda   NAME,y                 ; get next char of filename
-   cmp   #$0d
-   beq   @nameend
-   jsr   OSWRCH
-   iny
-   bne   @nameloop
-
-@nameend:
-   txa                          ; restore the file's attribute byte
-   ora   LEXEC                  ; $00 for *INFO, $ff for *CAT,
-   and   #$10                   ; dir?
-   bne   @newline               ; skip info if *CAT or current item is a directory
-
-@padloop:
-   jsr   SPCOUT                 ; pad filename with spaces
-   lda   $e0                    ; $e0 = horizontal cursor position
-   cmp   #16                    ; continue until column 16
-   bcc   @padloop
-
-   jsr   open_file_read         ; send the file name and prepare for reading
-
-   lda   #22                    ; ATM header size
-   jsr   read_block_shared
-
-   ldy   #$ff - 16
-@headerloop:
-   jsr   read_data_reg          ; read next ATM header byte
-   iny
-   bmi   @headerloop            ; skip bytes 1..16 (ATM header file name)
-   sta   LLOAD, y               ; save bytes 17..22 (ATM header load, exec, length)
-   cpy   #5
-   bne   @headerloop
-
-   jsr   print_fileinfo         ; print info from LLOAD followed by newline
-
-   lda   #$00                   ; reset the cat/info flag back to info
-   sta   LEXEC                  ; as it's corrupted just above
-   beq   @pause                 ; skip the newline as print_fileinfo includes one
-
-@newline:
-   jsr   OSCRLF
-
+   jsr   read_file_info         ; read_file_info is factored out
+                                ; so it can be re-used by *INFO <file>       
 @pause:
    bit   $b002                  ; test the rept key
    bvc   @pause                 ; stick here if rept pressed
@@ -99,8 +58,7 @@ get_next_loop:
 
 @return:
    rts
-
-
+        
 ; Find the position of the directory seperator
 ;
 ; - search forward for a wild card
