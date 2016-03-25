@@ -260,6 +260,7 @@ expect64orless:
 ;
 report_disk_failure:
    and   #ERROR_MASK
+   pha                          ; save error code
    tax                          ; error code into x
    ldy   #$ff                   ; string indexer
 
@@ -270,8 +271,8 @@ report_disk_failure:
 
    dex                          ; when this bottoms we've found our error
    bne   @findstring
-
-
+   pla                          ; restore error code
+   tax                          ; error code in X
    lda   TUBE_FLAG
    cmp   #TUBE_ENABLED
    beq   @tubeError
@@ -292,7 +293,7 @@ report_disk_failure:
    lda   #>diskerrortab
    adc   #0
    sta   $d6
-   jmp   L0409
+   jmp   L0409                  ; error code in X (must be non zero)
 
 diskerrortab:
    .byte $00
