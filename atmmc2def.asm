@@ -34,6 +34,9 @@ CRC         =$c9         ; 3 bytes in ZP - should be ok as this addr only used f
 RDCCNT      =$c9         ; B - bytes in pool - ie ready to be read from file
 RDCLEN      =$ca         ; W - length of file supplying characters
 
+HANDLER     =$d1         ; used by iterator.asm
+TMPY        =$d5         ; used by iterator.asm
+        
 tmp_ptr3    =$D5
 tmp_ptr5    =$D6
 tmp_ptr6    =$D7

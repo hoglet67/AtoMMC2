@@ -18,26 +18,22 @@
 ; 2016-03-22, *CAT code also used for *INFO, giving *INFO multi file / wildcard support
 ; 2016-03-23, Added back support for *INFO on a single file
 ; 2016-03-23, Reworked *CAT and *INFO so code is more readable
+; 2016-03-25, Rewrote using iterator pattern
 ;
 star_info:
-   jsr   read_optional_filename ; copy filename from $100 to $140
-
-   lda   #CMD_FILE_OPEN_READ
-   jsr   open_file              ; open the filename for reading
-
-   ldy   #0                     ; filename starts at offset 0 in the buffer
-
-   cmp   #STATUS_COMPLETE+1     ; check for an error, and if so assume directory mode
-   bcs   directory_cat_info     ; y=0 forces *INFO mode
-   ; fall through into print_filename_and_info with y=0
-
-; read an open file's ATM header and print's the appropriate info
+   jsr   iterator               ; invoke the directory iterator
 ;
-; On entry:
-;     Y: start position of the filename in the buffer
+; The directory iterator calls back to this handler for each matching child
 ;
-print_filename_and_info:
-   jsr   print_filename
+; On Entry:
+;     $140 contains the full path to the child
+;     Y is the offset in the $140 buffer to the child name
+;     C=0 if the child is a file, C=1 if the child is a directory
+;
+   php                          ; save C flag
+   jsr   print_filename         ; print the filename
+   plp                          ; restore C flag
+   bcs   newline                ; if a directory, then skip the file info bit
 
 @padloop:
    jsr   SPCOUT                 ; pad filename with spaces
@@ -46,6 +42,7 @@ print_filename_and_info:
    bcc   @padloop
 
    sta   LEXEC                  ; bit 7 = 0 forces read_info to read all info
+   jsr   open_file_read         ; open the file for reading
    jsr   read_info
    ; fall through into print_fileinfo
 
@@ -59,6 +56,8 @@ print_fileinfo:
    ldx   #LLOAD
    jsr   HEXOUT4                ; $f7ee print 4 bytes in hex, incrementing X
    jsr   HEXOUT2                ; $f7f1 print 2 bytes in hex, incrementing X
+
+newline:
    jmp   OSCRLF
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
@@ -70,7 +69,7 @@ print_fileinfo:
 print_filename:
    lda   NAME,y                 ; get next char of filename
    cmp   #$0d
-   beq   return                 ; save a byte by using an RTS in *CAT
+   beq   return
    jsr   OSWRCH
    iny
-   bne   print_filename
+   bne   print_filename         ; branch always

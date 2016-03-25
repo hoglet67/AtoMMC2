@@ -328,12 +328,13 @@ star_com5:
 comint6:
    jmp   ($0052)
 
-.include "info.asm"
-.include "cat.asm"
+.include "iterator.asm"
+.include "cat.asm"              ; close to iterator so can branch to return
+.include "info.asm"             ; close to iterator so can branch to return
+.include "delete.asm"           ; close to iterator so can branch to return
 .include "cwd.asm"
 .include "cfg.asm"
 .include "crc.asm"
-.include "delete.asm"
 .include "exec.asm"
 .include "fatinfo.asm"
 .include "help.asm"
