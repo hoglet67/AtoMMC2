@@ -75,3 +75,17 @@ Used SPCOUT ($f7fd) in a couple of places, saving 4 bytes, 096D
 Rewrote print_fileinfo using some Atom OS subroutines, saving 8 bytes, 0965
 
 Updated to "classic" Atom CRC, saving 31 bytes, 0946
+
+Added MKDIR and RMDIR, using 36 bytes, 096A
+
+First attempt at wildcards to *INFO, using 71 bytes, 09B1
+
+Extended *INFO to also support files, using 15 bytes, 09C0
+
+Restructuring of *INFO and *CAT, saving 8 bytes, 09B8
+
+Sharing of read_info between info and load, saving 15 bytes, 09A9
+
+Added proper directory iterator, using 12 bytes, 09B5
+
+Updated *DELETE to use directory iterator, using 10 bytes, 09BF
