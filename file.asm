@@ -50,33 +50,30 @@ send_name:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
-; Get 1st 22 bytes of file to $140
+; Read the file's info from the ATM header to LLOAD
 ;
-; leave the LOAD address in RAM alone if LEXEC is FF.
+; If LEXEC bit 7 = 0 then reads load, exec and length to LLOAD, LEXEC and LLENGTH
+; If LEXEC bit 7 = 1 then reads       exec and length to        LEXEC and LLENGTH (LOAD is preserved)
 ;
+; 2016/03/25: Rewrite to not use intermediate storage at $140
 read_info:
-   ; read the file header to $140
+   lda   #22                    ; ATM header size
+   jsr   read_block_shared
 
-   jsr   set_rwptr_to_name
-
-   lda   #22
-   jsr   read_block
-
-   ldy   #5                     ; index of msb of length
-   ldx   #3                     ; set up to copy 4 bytes - exec & length
-
-   bit   LEXEC                  ; if bit 7 is set on entry we don't overwrite
-   bmi   @copyfileinfo          ; the load address
-
-   ldx   #5                     ; otherwise copy 6 bytes including load
-
-@copyfileinfo:
-   lda   $150,y
+   ldy   #$ff-16                ; skip bytes 1..16 (ATM header file name)
+@loop:
+   jsr   read_data_reg          ; read next ATM header byte
+   iny
+   bmi   @loop
+   cpy   #2                     ; are we past the load byte?
+   bcs   @store                 ; branch if >= 2
+   bit   LEXEC                  ; if bit 7 is set on entry we don't overwrite load
+   bmi   @skip_store
+@store:
    sta   LLOAD,y
-   dey
-   dex
-   bpl   @copyfileinfo
-
+@skip_store:
+   cpy   #5
+   bcc   @loop                  ; branch if < 5
    rts
 
 

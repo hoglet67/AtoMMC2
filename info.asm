@@ -45,17 +45,8 @@ print_filename_and_info:
    cmp   #16                    ; continue until column 16
    bcc   @padloop
 
-   lda   #22                    ; ATM header size
-   jsr   read_block_shared
-
-   ldy   #$ff - 16
-@headerloop:
-   jsr   read_data_reg          ; read next ATM header byte
-   iny
-   bmi   @headerloop            ; skip bytes 1..16 (ATM header file name)
-   sta   LLOAD, y               ; save bytes 17..22 (ATM header load, exec, length)
-   cpy   #5
-   bne   @headerloop
+   sta   LEXEC                  ; bit 7 = 0 forces read_info to read all info
+   jsr   read_info
    ; fall through into print_fileinfo
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
