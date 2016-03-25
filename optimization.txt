@@ -89,3 +89,5 @@ Sharing of read_info between info and load, saving 15 bytes, 09A9
 Added proper directory iterator, using 12 bytes, 09B5
 
 Updated *DELETE to use directory iterator, using 10 bytes, 09BF
+
+Allow backslash to be used as a seperator, using 4 bytes, 09C3

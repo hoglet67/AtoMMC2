@@ -114,6 +114,8 @@ iterator:
     lda   NAME, y
     cmp   #'/'
     beq   @found_slash
+    cmp   #'\'
+    beq   @found_slash
     dey
     bpl   @slash_loop
 
