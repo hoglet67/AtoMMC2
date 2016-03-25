@@ -111,6 +111,9 @@ CMD_DIR_GETCWD                  =   $03
 CMD_DIR_MKDIR                   =   $04
 CMD_DIR_RMDIR                   =   $05
 
+; // RENAME commands
+CMD_RENAME                      =   $08
+
 ; // CMD_REG_COMMANDS
 CMD_FILE_CLOSE                  =   $10
 CMD_FILE_OPEN_READ              =   $11

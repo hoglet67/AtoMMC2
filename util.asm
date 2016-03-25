@@ -365,6 +365,7 @@ read_optional_filename:
 @filename3:
    lda   #$0d
    sta   NAME,x
+   sty   $9a
    rts
 
 @filename5:

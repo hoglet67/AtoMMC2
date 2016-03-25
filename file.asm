@@ -32,6 +32,7 @@ open_file:
 send_name:
    jsr   prepare_write_data
 
+send_additional_name:
    ldx   #0
    beq   @pumpname
 

@@ -340,6 +340,7 @@ comint6:
 .include "help.asm"
 .include "load.asm"
 .include "mkdir.asm"
+.include "ren.asm"
 .include "rmdir.asm"
 .include "run.asm"
 .include "save.asm"
@@ -411,6 +412,9 @@ com_tab:
 
    .byte "MKDIR"                ; in mkdir.asm
    FNADDR star_mkdir
+
+   .byte "REN"                  ; in ren.asm
+   FNADDR star_ren
 
    .byte "RMDIR"                ; in rmdir.asm
    FNADDR star_rmdir
