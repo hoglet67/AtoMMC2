@@ -117,7 +117,8 @@ slow_cmd_delay_loop:
    jsr   WaitWhileBusy       ; Keep waiting until not busy
    lda   ACMD_REG            ; get status for client
 .endif
-   rts
+   jmp   inter_write_delay   ; seems necessary at 4MHz if slow_cmd immediately
+                             ; followed by prepare_read_data (e.g. as in osrdar) 
 
 .ifdef AVR
 WaitUntilRead:
