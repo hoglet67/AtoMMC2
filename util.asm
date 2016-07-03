@@ -118,6 +118,7 @@ slow_cmd_delay_loop:
 .else
    jsr   WaitWhileBusy       ; Keep waiting until not busy
    lda   ACMD_REG            ; get status for client
+   rts
 .endif
 
 .ifdef AVR
