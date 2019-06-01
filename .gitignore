@@ -1,5 +1,5 @@
 *~
 \#*
-*.lst
-*.rom
 tmp/
+build/
+releases/
