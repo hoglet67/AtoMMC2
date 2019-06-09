@@ -24,7 +24,7 @@ osloadcode:
    ;
    jsr   copy_name              ; copy data block at $00,x to COS workspace at $c9
                                 ; also checks filename is < 14 chars, PIC additionally checks < 8 chars
-                                ; copy filename from ($c9) to $140 
+                                ; copy filename from ($c9) to $140
 
    jsr   open_file_read         ; invokes error handler if return code > 64
    jsr   read_info

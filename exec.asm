@@ -63,7 +63,7 @@ sinkchar:
 
    lda   #CMD_READ_BYTES        ; set command
    jsr   slow_cmd
-        
+
    cmp   #STATUS_COMPLETE
    beq   @allok
 

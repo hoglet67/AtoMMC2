@@ -147,9 +147,9 @@ switch:
 ; *** central break handler ***
 
 handler:
-   pla  
+   pla
    sta   TEMP                   ; save high byte error
-   pla  
+   pla
    sta   0                      ; save low byte error
 
    bit   SHADOW                 ; rom locked?
@@ -169,7 +169,7 @@ not_locked_error:
    jmp   not_found              ; command not found in roms, try table
 label99:
    ldx   #$ff                   ; reset STACKPOINTER
-   txs  
+   txs
    jmp   next_box               ; check next rom
 
 ; *** function check ***
@@ -200,8 +200,8 @@ lb1:
    bcc   not_install
    beq   not_install
 
-   dex  
-   dex  
+   dex
+   dex
    and   #$f0
    cmp   #$a0
    beq   lb1
@@ -209,31 +209,31 @@ lb1:
    cpx   #$fd                   ; no a-block?
    beq   not_install
 
-   txa  
-   clc  
+   txa
+   clc
    adc   #3
    sta   STACKPOINTER
-   pha  
-   pha  
-   pha  
-   tsx  
+   pha
+   pha
+   pha
+   tsx
 lb2:
    lda   $103,x
    sta   $100,x
-   inx  
+   inx
    cpx   STACKPOINTER
    bne   lb2
 
    lda   STACKPOINTER
-   tax  
-   dex  
+   tax
+   dex
    lda   SHADOW
    sta   $100,x
-   dex  
+   dex
    lda   #>(switch_back-1)
    sta   $100,x
    lda   #<(switch_back-1)
-   dex  
+   dex
    sta   $100,x
 
 not_install:
@@ -267,7 +267,7 @@ locked_error:
 
 label3:
    ldx   #$ff                   ; reset STACKPOINTER
-   txs  
+   txs
    jmp   not_found              ; command not found in roms, try table
 
 ; *** store zeropage (always #91-#98) ***
@@ -275,56 +275,56 @@ label3:
 switch_context_out:
    lda   SHADOW                 ; get rom nr
    and   #$f                    ; filter to 0-15
-   tax  
-   inx  
+   tax
+   inx
 
    lda   #0
 
 label4:
    clc                          ; dump pointer = romnr * ZPLENGTH-1
    adc   #ZPLENGTH
-   dex  
+   dex
    bne   label4
 
    ldx   #(ZPLENGTH-1)          ; set ZPBASE pointer
-   tay  
-   dey  
+   tay
+   dey
 
 label5:
    lda   ZPBASE,x               ; save zeropage
    sta   DUMP,y
-   dey  
-   dex  
+   dey
+   dex
    bpl   label5
-   rts  
+   rts
 
 ; *** restore zeropage (always #91-#98) ***
 
 switch_context_in:
    lda   SHADOW                 ; get rom nr
    and   #$f                    ; filter to 0-15
-   tax  
-   inx  
+   tax
+   inx
 
    lda   #0
 
 label6:
    clc                          ; dump pointer = romnr * ZPLENGTH-1
    adc   #ZPLENGTH
-   dex  
+   dex
    bne   label6
 
    ldx   #(ZPLENGTH-1)          ; set ZPBASE pointer
-   tay  
-   dey  
+   tay
+   dey
 
 label7:
    lda   DUMP,y                 ; restore zeropage
    sta   ZPBASE,x
-   dey  
-   dex  
+   dey
+   dex
    bpl   label7
-   rts  
+   rts
 
 ; *** start search locked ***
 
@@ -387,11 +387,11 @@ trap_error_94:
    jmp   $c558
 
 label54:
-   dey  
+   dey
 
 next_char:
-   inx  
-   iny  
+   inx
+   iny
 
 label12:
    lda   table,x
@@ -403,26 +403,26 @@ label15:
    beq   label14
    cmp   (5),y
    beq   next_char
-   dex  
+   dex
    lda   (5),y
    cmp   #'.'
    beq   label100
 
 label13:
-   inx  
+   inx
    lda   table,x
    cmp   #$fe
    bne   label13
-   inx  
-   inx  
+   inx
+   inx
    jmp   next_statement
 
 label100:
-   inx  
+   inx
    lda   table,x
    cmp   #$fe
    bne   label100
-   iny  
+   iny
 
 label14:
    lda   table+1,x
@@ -439,7 +439,7 @@ rom:
    jsr   $c4e1
    jsr   update_vectors
    ldx   4
-   dex  
+   dex
    stx   4
    lda   $16,x
    and   #$f
@@ -497,8 +497,8 @@ table:
 ; and replace vector
 
 update_vectors:
-   php  
-   sei  
+   php
+   sei
 
    ldx   #0                     ; reset pointers
    ldy   #0
@@ -521,7 +521,7 @@ label30:
    txa                          ; replace vector
    asl   a
    asl   a
-   clc  
+   clc
    adc   #<vecentry
    sta   $200,x
    lda   #>vecentry
@@ -530,11 +530,11 @@ label30:
 
 label31:
    inx                          ; point to next vector
-   inx  
+   inx
 
-   iny  
-   iny  
-   iny  
+   iny
+   iny
+   iny
 
    cpx   #$1c                   ; check end of vectors
    bne   label30
@@ -557,8 +557,8 @@ label31:
    sta   VECTAB+2,y
 
 label32:
-   plp  
-   rts  
+   plp
+   rts
 
 ; *** entry vector pathways ***
 
@@ -568,10 +568,10 @@ vecentry:
    jmp   ijob
 
    nop                          ; $202, brk vector
-   nop  
-   nop  
-   nop  
-   nop  
+   nop
+   nop
+   nop
+   nop
    jmp   $c558
 
    jsr   isave                  ; $204, irq vector
@@ -631,22 +631,22 @@ vecentry:
 save:
    php                          ; save processor status
    sta   SUB_ACCU               ; save accu
-   pla  
+   pla
    sta   SUB_STATUS             ; save status
    stx   SUB_X                  ; save x-reg
    sty   SUB_Y                  ; save y-reg
-   rts  
+   rts
 
 ; *** save interrupt processor/registers ***
 
 isave:
    php                          ; save processor status
    sta   INT_ACCU               ; save accu
-   pla  
+   pla
    sta   INT_STATUS1            ; save status
    stx   INT_X                  ; save x-reg
    sty   INT_Y                  ; save y-reg
-   rts  
+   rts
 
 ; *** reset normal processor/registers ***
 
@@ -654,10 +654,10 @@ load:
    ldy   SUB_Y                  ; reset y-reg
    ldx   SUB_X                  ; reset x-reg
    lda   SUB_STATUS             ; reset status
-   pha  
+   pha
    lda   SUB_ACCU               ; reset accu
    plp                          ; reset processor status
-   rts  
+   rts
 
 ; *** reset interrupt processor/registers ***
 
@@ -665,22 +665,22 @@ iload:
    ldx   INT_X                  ; reset y-reg
    ldy   INT_Y                  ; reset x-reg
    lda   INT_STATUS1            ; reset status
-   pha  
+   pha
    lda   INT_ACCU               ; reset accu
    plp                          ; reset processor status
-   rts  
+   rts
 
 ; *** interrupt switching pathway ***
 
 ijob:
-   pla  
+   pla
    sta   INT_ACCU
-   pla  
-   pha  
+   pla
+   pha
    sta   INT_STATUS2
 
    lda   SHADOW                 ; save rom nr
-   pha  
+   pha
 
    lda   VECTAB+2,x             ; reset rom nr
    sta   SHADOW
@@ -692,13 +692,13 @@ ijob:
    sta   INTVECTOR
 
    lda   #>ientry               ; replace nmi/irq vector
-   pha  
+   pha
    lda   #<ientry
-   pha  
+   pha
    lda   INT_STATUS2
-   pha  
+   pha
    lda   INT_ACCU
-   pha  
+   pha
    jsr   iload
    jmp   (INTVECTOR)            ; jump interrupt vector
 
@@ -707,12 +707,12 @@ ijob:
 
 ientry:
    jsr   isave                  ; save processor/register values
-   pla  
+   pla
    sta   SHADOW
    sta   LATCH
-   plp  
+   plp
    lda   INT_STATUS2
-   pha  
+   pha
    jsr   iload                  ; load processor/register values
    rti                          ; return from interrupt
 
@@ -720,8 +720,8 @@ ientry:
 
 job:
    stx   VECTOR
-   txa  
-   pha  
+   txa
+   pha
 
    lda   $60                    ; save option pcharm
    sta   OPT_PCHARME            ;**!!**
@@ -743,7 +743,7 @@ label40:
    jsr   switch_context_out     ; store zeropage
    ldx   VECTOR
    lda   SHADOW
-   pha  
+   pha
    lda   VECTAB+1,x
    sta   SUBVECTOR
    lda   VECTAB,x
@@ -762,7 +762,7 @@ lb50:
 lb51:
    jsr   save
    jsr   switch_context_out     ; store zeropage
-   pla  
+   pla
    sta   SHADOW
    sta   LATCH
    jsr   switch_context_in      ; restore zeropage
@@ -770,7 +770,7 @@ lb51:
    lda   OPT_PCHARME            ;**!!**
    sta   $60
 
-   pla  
+   pla
    cmp   #21                    ; save file
    bne   lb10
    lda   VECTAB+13
@@ -788,10 +788,10 @@ lb10:
 ; *** no swith pathway ***
 
 short_execution:
-   pla  
+   pla
    ldx   VECTOR
    lda   SHADOW
-   pha  
+   pha
    lda   VECTAB+2,x
    sta   SHADOW
    sta   LATCH
@@ -808,7 +808,7 @@ lb60:
 
 lb61:
    jsr   save
-   pla  
+   pla
    sta   SHADOW
    sta   LATCH
 
@@ -821,7 +821,7 @@ lb61:
 switch_back:
    jsr   save
    jsr   switch_context_out     ; store zeropage
-   pla  
+   pla
    sta   SHADOW
    sta   LATCH
    jsr   switch_context_in      ; restore zeropage

@@ -21,7 +21,7 @@ star_delete:
    bcs   return                 ; skip directories
 
    jsr   print_filename
-        
+
    jsr   STROUT
    .byte "; CONFIRM (Y):"
    nop

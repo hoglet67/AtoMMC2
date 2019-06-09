@@ -9,7 +9,7 @@ TUBE_FLAG      =  $3CF          ; Tube enabled flag, set by atom tube host
 TUBE_ENABLED   =   $5A          ; Tube enable magic value
 TUBE_CLIENT_ID =   $DD          ; Client ID for AtoMMC2 used in tube protocol
 
-TUBE_R3        = $BEE5          ; Tube data transfer FIFO 
+TUBE_R3        = $BEE5          ; Tube data transfer FIFO
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ; tube_claim_wrapper
@@ -71,11 +71,11 @@ tube_read_block:
 @loop:
    jsr   read_data_reg          ; then read it
    sta   TUBE_R3                ; write to the tube data transfer register
-   dex  
+   dex
    bne   @loop
 
 tube_disabled:
-   rts  
+   rts
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -91,11 +91,11 @@ tube_write_block:
 
 @tube_enabled:
    tax                          ; save away the block size
-   pha  
+   pha
    jsr   prepare_write_data     ; take it
 @loop:
    lda   TUBE_R3                ; read data from the tube data transfer register
    jsr   write_data_reg
-   dex  
+   dex
    bne   @loop
    jmp   write_block_shared

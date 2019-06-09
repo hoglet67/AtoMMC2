@@ -4,7 +4,7 @@
 
 open_filename_read:
    jsr   read_filename          ; copy filename from $100 to $140
-   ; fall through to open_file_read 
+   ; fall through to open_file_read
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;

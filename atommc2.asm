@@ -349,7 +349,7 @@ comint6:
 .include "chain.asm"
 .include "raf.asm"
 .include "tube.asm"
-        
+
 ;.include "urom.asm"
 
 cardtypes:
@@ -473,5 +473,5 @@ version_short:
    .byte " (C) 2008-2016  "
    .byte "CHARLIE ROBSON. "
 version_long:
-        
+
    .end

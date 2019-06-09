@@ -10,7 +10,7 @@ ARITHWK     =$23
 
 ; if ATOM_CRC_POLYNOMIAL is defined, *CRC will use it
 ; if not, it will use the original code which is faster, but ~30 bytes longer
-ATOM_CRC_POLYNOMIAL = $2d        
+ATOM_CRC_POLYNOMIAL = $2d
 
 
 ; these need to be in ZP
@@ -36,7 +36,7 @@ RDCLEN      =$ca         ; W - length of file supplying characters
 
 HANDLER     =$d1         ; used by iterator.asm
 TMPY        =$d5         ; used by iterator.asm
-        
+
 tmp_ptr3    =$D5
 tmp_ptr5    =$D6
 tmp_ptr6    =$D7
@@ -62,7 +62,7 @@ FILTER     =$3cd         ; B - dir walk filter
 ;
 OSWRCH     =$fff4
 OSRDCH     =$ffe3
-OSECHO     =$ffe6 
+OSECHO     =$ffe6
 OSCRLF     =$ffed
 COSSYN     =$fa7d
 COSPOST    =$fa76

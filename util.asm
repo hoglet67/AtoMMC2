@@ -114,7 +114,7 @@ slow_cmd_delay_loop:
    lda   ACMD_REG
    bmi   slow_cmd_loop       ; loop until command done bit (bit 7) is cleared
    jmp   inter_write_delay   ; seems necessary at 4MHz if slow_cmd immediately
-                             ; followed by prepare_read_data (e.g. as in osrdar) 
+                             ; followed by prepare_read_data (e.g. as in osrdar)
 .else
    jsr   WaitWhileBusy       ; Keep waiting until not busy
    lda   ACMD_REG            ; get status for client
