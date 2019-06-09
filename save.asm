@@ -46,7 +46,7 @@ ossavecode:
 
    ; @@TUBE@@
    ; Test if the tube is enabled, then claim and initiate transfer
-   ldx   #SLOAD                 ; block containing transfer address
+   ldx   #SSTART                ; block containing transfer address
    ldy   #0                     ; transfer type
    jsr   tube_claim_wrapper
 

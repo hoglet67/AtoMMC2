@@ -462,7 +462,7 @@ warmstart:
 .SEGMENT "VSN"
 
 version:
-   .byte "ATOMMC2 V3.00"
+   .byte "ATOMMC2 V3.01"
 .ifndef EOOO
    .byte "A"
 .else
@@ -470,7 +470,7 @@ version:
 .endif
    .byte $0d,$0a
 version_short:
-   .byte " (C) 2008-2016  "
+   .byte " (C) 2008-2019  "
    .byte "CHARLIE ROBSON. "
 version_long:
 
