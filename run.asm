@@ -2,9 +2,46 @@
 ;
 ; *[file name]
 ;
-; Synonymous with *RUN.
+; As for *RUN, except the /LIB/ directory is also searched
 ;
 star_arbitrary:
+
+   jsr   read_filename          ; copy filename into $140
+
+   txa                          ; save X, length of the filename
+   pha
+   tya                          ; save Y, the command line index
+   pha
+   lda   #CMD_FILE_OPEN_READ    ; try to open the file, to see if it exists
+   jsr   open_file
+   cmp   #STATUS_COMPLETE+1     ; a status of 64 or less indicates no error
+   bcs   skip_close
+   jsr   closefile
+   clc
+skip_close:
+   pla
+   tay                          ; restore Y, the command line index
+   pla
+   tax                          ; restore X, the length of the filename
+   bcc   initparams
+
+make_space_loop:                ; move the filename up to make space for the lib path
+   lda   NAME, x
+   sta   NAME+libpath_end-libpath, x
+   dex
+   bpl   make_space_loop
+
+   ldx   #libpath_end-libpath-1
+copy_libpath_loop:
+   lda   libpath, X
+   sta   NAME, X
+   dex
+   bpl   copy_libpath_loop
+   bmi   initparams
+
+libpath:
+   .byte "/LIB/"
+libpath_end:
 
 ;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~;~~
 ;
@@ -15,6 +52,8 @@ star_arbitrary:
 ;
 star_run:
    jsr   read_filename          ; copy filename into $140
+
+initparams:
    jsr   SKIPSPC
    ldx   #0
 
